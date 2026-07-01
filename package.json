@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "leaflet.heat": "^0.2.0",
+    "lucide-react": "^1.22.0",
     "next": "16.2.9",
     "playwright": "^1.61.0",
     "react": "19.2.4",
