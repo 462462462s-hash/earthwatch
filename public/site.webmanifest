@@ -1,0 +1,21 @@
+{
+  "name": "Quake Hub — Live Earthquake Monitor",
+  "short_name": "Quake Hub",
+  "description": "Real-time global earthquake monitoring powered by USGS data",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060610",
+  "theme_color": "#060610",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
