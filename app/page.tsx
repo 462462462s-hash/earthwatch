@@ -351,7 +351,34 @@ export default function Home() {
                 </div>
               </div>
             )}
-
+              {/* Recent Earthquakes — real crawlable internal links */}
+        <section className="px-4 sm:px-6 pb-8 max-w-6xl mx-auto">
+          <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4">
+            Recent Earthquake Reports
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {earthquakes
+              .slice()
+              .sort((a, b) => b.time - a.time)
+              .slice(0, 30)
+              .map((eq) => (
+                <Link
+                  key={eq.id}
+                  href={`/earthquake/${encodeURIComponent(eq.id)}`}
+                  className="flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 bg-white/[0.01] transition-colors text-xs"
+                >
+                  <span className="text-orange-300 font-bold font-mono">
+                    M{eq.magnitude.toFixed(1)}
+                  </span>
+                  <span className="text-white/70 truncate flex-1 mx-2">{eq.place}</span>
+                  <span className="text-orange-400/40 shrink-0">
+                    {new Date(eq.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </Link>
+              ))}
+          </div>
+        </section>
+        
             <div className="px-4 py-3 bg-orange-500/[0.04] border-b border-orange-500/15 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
