@@ -173,7 +173,7 @@ function EarthquakeDetailMain() {
     return (
       <div className="min-h-screen bg-[#060610] text-white flex flex-col items-center justify-center gap-4 px-4">
         <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-orange-400/60 text-xs tracking-widest uppercase text-center animate-pulse">Decrypting Event Waveforms...</p>
+        <p className="text-orange-400/60 text-xs tracking-widest uppercase text-center animate-pulse">Loading earthquake report...</p>
       </div>
     );
   }
@@ -183,7 +183,7 @@ function EarthquakeDetailMain() {
       <div className="min-h-screen bg-[#060610] text-white flex flex-col items-center justify-center gap-4 px-4 text-center">
         <ShieldAlert className="text-red-500 w-12 h-12" />
         <p className="text-red-400 font-bold text-sm sm:text-base">EVENT CORRUPTION: SEISMIC ID NOT FOUND</p>
-        <Link href="/" className="text-xs text-orange-400 underline tracking-widest uppercase">Return to Main Frame</Link>
+        <Link href="/" className="text-xs text-orange-400 underline tracking-widest uppercase">Return to the Live Earthquake Map</Link>
       </div>
     );
   }
@@ -208,20 +208,19 @@ function EarthquakeDetailMain() {
   ];
 
   return (
-    <div className="min-h-screen text-white pb-16 antialiased bg-[#060610]">
+    <main className="min-h-screen text-white pb-16 antialiased bg-[#060610]">
       <nav className="sticky top-0 z-50 flex items-center px-4 sm:px-6 h-14 bg-[#060610]/80 backdrop-blur-md border-b border-orange-500/15">
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-xs font-bold text-orange-400/80 hover:text-orange-300 transition-colors uppercase tracking-wider"
         >
-          <ArrowLeft size={14} /> Back <span className="hidden xs:inline">to Terminal Matrix</span>
+          <ArrowLeft size={14} /> Back <span className="hidden xs:inline">to Live Earthquake Map</span>
         </button>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 space-y-4 sm:space-y-6">
+      <article className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 space-y-4 sm:space-y-6">
 
-        {/* ── HEADER ── */}
-        <div className="border border-orange-500/20 rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-white/[0.02] to-transparent">
+        <header className="border border-orange-500/20 rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-white/[0.02] to-transparent">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
@@ -239,7 +238,10 @@ function EarthquakeDetailMain() {
                   </span>
                 )}
               </div>
-              <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-tight break-words leading-tight">{eq.place}</h1>
+              {/* SEO: primary keyword-bearing <h1>, matches server-rendered <title> */}
+              <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-tight break-words leading-tight">
+                M{eq.magnitude.toFixed(1)} Earthquake — {eq.place}
+              </h1>
               <p className="text-orange-400/40 text-[10px] sm:text-xs mt-1.5 tracking-widest leading-relaxed">
                 DETECTION TIMELOCK: {eq.time ? new Date(eq.time).toUTCString() : "UNKNOWN TIME"}
               </p>
@@ -257,69 +259,72 @@ function EarthquakeDetailMain() {
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* ── TELEMETRY GRID ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-          <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase">Epicenter Region</span>
-              <Globe size={16} className="text-orange-400/60 shrink-0" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[10px] sm:text-xs text-orange-400/40">Target City / Zone</div>
-              <div className="text-base sm:text-lg font-bold text-orange-300 truncate">{eq.city}</div>
-              {eq.country && eq.country !== eq.city && (
-                <div className="text-[10px] sm:text-xs text-orange-400/40 mt-0.5 truncate">{eq.country}</div>
-              )}
-            </div>
-          </div>
-
-          <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase">Coordinates</span>
-              <Compass size={16} className="text-orange-400/60 shrink-0" />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="min-w-0">
-                <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-wider">LATITUDE</div>
-                <div className="text-sm sm:text-base font-mono font-bold text-white truncate">{eq.lat.toFixed(4)}°</div>
+        <section aria-labelledby="epicenter-heading">
+          <h2 id="epicenter-heading" className="sr-only">Epicenter, Coordinates, and Depth Data for This Earthquake</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+            <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase m-0">Epicenter Region</h3>
+                <Globe size={16} className="text-orange-400/60 shrink-0" />
               </div>
               <div className="min-w-0">
-                <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-wider">LONGITUDE</div>
-                <div className="text-sm sm:text-base font-mono font-bold text-white truncate">{eq.lon.toFixed(4)}°</div>
+                <div className="text-[10px] sm:text-xs text-orange-400/40">Target City / Zone</div>
+                <div className="text-base sm:text-lg font-bold text-orange-300 truncate">{eq.city}</div>
+                {eq.country && eq.country !== eq.city && (
+                  <div className="text-[10px] sm:text-xs text-orange-400/40 mt-0.5 truncate">{eq.country}</div>
+                )}
               </div>
             </div>
-          </div>
 
-          <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4 sm:col-span-2 md:col-span-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase">Hypocenter Depth</span>
-              <Activity size={16} className="text-orange-400/60 shrink-0" />
+            <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase m-0">Coordinates</h3>
+                <Compass size={16} className="text-orange-400/60 shrink-0" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="min-w-0">
+                  <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-wider">LATITUDE</div>
+                  <div className="text-sm sm:text-base font-mono font-bold text-white truncate">{eq.lat.toFixed(4)}°</div>
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-wider">LONGITUDE</div>
+                  <div className="text-sm sm:text-base font-mono font-bold text-white truncate">{eq.lon.toFixed(4)}°</div>
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-wider">CRUST PENETRATION</div>
-              <div className="text-xl sm:text-2xl font-black font-mono text-orange-400">
-                {eq.depth.toFixed(1)} <span className="text-xs font-normal">KM</span>
+
+            <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4 sm:col-span-2 md:col-span-1">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase m-0">Hypocenter Depth</h3>
+                <Activity size={16} className="text-orange-400/60 shrink-0" />
+              </div>
+              <div>
+                <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-wider">CRUST PENETRATION</div>
+                <div className="text-xl sm:text-2xl font-black font-mono text-orange-400">
+                  {eq.depth.toFixed(1)} <span className="text-xs font-normal">KM</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* ── STATS ROW ── */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-3 sm:p-4">
-            <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-widest uppercase mb-1 truncate">Felt Reports</div>
+            <h3 className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-widest uppercase mb-1 truncate m-0">Felt Reports</h3>
             <div className="text-lg sm:text-xl font-black font-mono text-white">{eq.felt?.toLocaleString() ?? "0"}</div>
             <div className="text-[9px] sm:text-[10px] text-orange-400/30 mt-0.5 line-clamp-1">reported shaking</div>
           </div>
           <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-3 sm:p-4">
-            <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-widest uppercase mb-1 truncate">Significance</div>
+            <h3 className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-widest uppercase mb-1 truncate m-0">Significance</h3>
             <div className="text-lg sm:text-xl font-black font-mono text-white">{eq.significance ?? "—"}</div>
             <div className="text-[9px] sm:text-[10px] text-orange-400/30 mt-0.5 line-clamp-1">USGS impact index</div>
           </div>
           <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-3 sm:p-4 col-span-2 md:col-span-1">
-            <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-widest uppercase mb-1 truncate">Tsunami Risk</div>
+            <h3 className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-widest uppercase mb-1 truncate m-0">Tsunami Risk</h3>
             <div className={`text-lg sm:text-xl font-black font-mono ${eq.tsunami === 1 ? "text-red-400" : "text-green-400"}`}>
               {eq.tsunami === 1 ? "ACTIVE" : "NONE"}
             </div>
@@ -327,12 +332,27 @@ function EarthquakeDetailMain() {
           </div>
         </div>
 
+        {/* SEO: extra descriptive paragraph, adds unique per-page text content with location + magnitude keywords */}
+        <section className="border border-orange-500/10 rounded-2xl p-4 sm:p-5 bg-white/[0.01]">
+          <h2 className="text-xs text-orange-300/80 font-bold tracking-widest uppercase mb-2">Earthquake Summary for {eq.place}</h2>
+          <p className="text-[11px] sm:text-xs text-orange-100/50 leading-relaxed">
+            This magnitude {eq.magnitude.toFixed(1)} earthquake was recorded near {eq.city || eq.place}
+            {eq.country ? `, ${eq.country}` : ""} at a hypocenter depth of {eq.depth.toFixed(1)} km.
+            {eq.tsunami === 1
+              ? " USGS has flagged an active tsunami advisory for this event — check official coastal warning channels for evacuation guidance."
+              : " No active tsunami advisory has been issued for this event."}{" "}
+            {eq.felt && eq.felt > 0
+              ? `So far, ${eq.felt.toLocaleString()} people have reported feeling this earthquake.`
+              : "No felt reports have been submitted for this event yet."} Track this and other live seismic activity on the Quake Hub real-time earthquake map.
+          </p>
+        </section>
+
         {/* ── NEWS SECTION ── */}
-        <div className="border border-orange-500/15 rounded-2xl overflow-hidden">
+        <section className="border border-orange-500/15 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 sm:px-5 sm:py-4 bg-orange-500/[0.04] border-b border-orange-500/10 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <Newspaper size={14} className="text-orange-400/60 shrink-0" />
-              <span className="text-xs text-orange-300/80 font-bold tracking-widest uppercase truncate">Live News Feed</span>
+              <h2 className="text-xs text-orange-300/80 font-bold tracking-widest uppercase truncate m-0">Live Earthquake News for {searchLabel || eq.place}</h2>
               <span className="text-[10px] text-orange-400/30 font-mono hidden md:inline truncate">[{searchLabel}]</span>
             </div>
             <span className="text-[10px] text-orange-400/40 font-mono shrink-0">{news.length} articles</span>
@@ -366,7 +386,7 @@ function EarthquakeDetailMain() {
                     src={buildOsmEmbedUrl(eq.lat, eq.lon)}
                     className="w-full h-full border-0 pointer-events-none transition-transform duration-300 group-hover:scale-[1.03]"
                     loading="lazy"
-                    title="Earthquake epicenter map"
+                    title={`Epicenter map location for the M${eq.magnitude.toFixed(1)} earthquake near ${eq.place}`}
                   />
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500 text-[#0a0a14] text-[9px] sm:text-[10px] font-bold tracking-wide shadow-lg animate-pulse">
                     <ExternalLink size={10} />
@@ -398,10 +418,12 @@ function EarthquakeDetailMain() {
                       className={`group relative rounded-xl overflow-hidden border border-white/5 hover:border-orange-500/40 transition-all duration-300 bg-[#0a0a14] flex flex-col ${i === 0 ? "sm:col-span-2 lg:col-span-2" : ""}`}
                     >
                       <div className="relative overflow-hidden w-full h-36 sm:h-40 md:h-44">
+                        {/* SEO: descriptive, keyword-rich alt text (place + magnitude + headline) instead of just the raw title */}
                         <img
                           src={article.imageUrl!}
-                          alt={article.title}
+                          alt={`News photo for: ${article.title} — M${eq.magnitude.toFixed(1)} earthquake, ${eq.place}`}
                           className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                          loading="lazy"
                           onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/40 to-transparent" />
@@ -459,13 +481,13 @@ function EarthquakeDetailMain() {
               )}
             </div>
           )}
-        </div>
+        </section>
 
         {/* ── FULL EVENT RECORD ── */}
-        <div className="border border-orange-500/15 rounded-2xl overflow-hidden bg-white/[0.01]">
+        <section className="border border-orange-500/15 rounded-2xl overflow-hidden bg-white/[0.01]">
           <div className="px-4 py-3 sm:px-5 sm:py-4 bg-orange-500/[0.04] border-b border-orange-500/10 flex items-center gap-2">
             <ListTree size={14} className="text-orange-400/60 shrink-0" />
-            <span className="text-xs text-orange-300/80 font-bold tracking-widest uppercase">Full Event Record Logs</span>
+            <h2 className="text-xs text-orange-300/80 font-bold tracking-widest uppercase m-0">Full Event Record Logs</h2>
           </div>
           <div className="p-5 sm:p-6">
             <ul className="list-disc list-inside space-y-3.5 text-xs sm:text-sm text-white/70 font-medium tracking-wide">
@@ -476,14 +498,12 @@ function EarthquakeDetailMain() {
               ))}
             </ul>
           </div>
-        </div>
-      </div>
-    </div>
+        </section>
+      </article>
+    </main>
   );
 }
 
-// ─── NOTE: The export name changed from EarthquakeDetailPage → EarthquakeDetailClient
-// ─── This is the ONLY difference from your original page.tsx
 export default function EarthquakeDetailClient() {
   return (
     <Suspense fallback={

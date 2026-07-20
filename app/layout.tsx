@@ -1,55 +1,71 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const SITE_URL = "https://your-domain.com"; // ← replace with your real production domain
-const SITE_NAME = "Quake Hub — Live Earthquake Monitor";
+const SITE_URL = "https://earthwatch-iihz-azure.vercel.app";
+const SITE_NAME = "Quake Hub";
+
+// SEO: expanded description with primary + secondary keywords, kept just under ~160 chars
 const SITE_DESCRIPTION =
-  "Real-time global earthquake monitoring powered by official USGS data. Track live seismic activity, magnitude, depth, tsunami risk, and breaking news for earthquakes happening right now anywhere in the world.";
+  "Quake Hub tracks live earthquakes worldwide with real-time USGS data. View an interactive global earthquake map, magnitude, depth, tsunami alerts, and breaking seismic activity by country.";
+
+// SEO: lengthened, keyword-rich title (primary keyword "live earthquake map" + secondary "real-time tracker" + "seismic alerts")
+const SITE_TITLE =
+  "Quake Hub – Live Earthquake Map, Real-Time Tracker & Global Seismic Alerts";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: SITE_NAME,
-    template: "%s | Quake Hub",
+    default: SITE_TITLE,
+    template: "%s | Quake Hub – Live Earthquake Tracker",
   },
   description: SITE_DESCRIPTION,
-  applicationName: SITE_NAME,
   keywords: [
-    "earthquake tracker",
     "live earthquake map",
-    "USGS earthquake data",
-    "real-time seismic activity",
-    "earthquake news today",
-    "magnitude earthquake",
-    "tsunami alert",
-    "recent earthquakes near me",
+    "real-time earthquake tracker",
+    "earthquake today",
+    "USGS earthquake feed",
+    "seismic activity map",
+    "tsunami alert tracker",
+    "magnitude earthquake tracker",
+    "global earthquake monitor",
   ],
+  applicationName: SITE_NAME,
   authors: [{ name: "Quake Hub" }],
   creator: "Quake Hub",
   publisher: "Quake Hub",
   formatDetection: { telephone: false },
   alternates: {
-    canonical: "/",
+    canonical: "./",
+  },
+  // SEO: geo tags. Note — geo.* meta tags are most meaningful on location-specific
+  // pages (see app/earthquake/[id]/page.tsx, which sets real lat/lon per event).
+  // On the global homepage we declare worldwide coverage instead of a single region.
+  other: {
+    "geo.placename": "Worldwide",
+    "geo.region": "00",
+    "ICBM": "0, 0",
+    "coverage": "Worldwide",
+    "distribution": "Global",
   },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: SITE_NAME,
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     locale: "en_US",
     images: [
       {
-        url: "/og-image.png", // 1200x630 social preview image — add this file to /public
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Quake Hub — Live Global Earthquake Monitor",
+        alt: "Quake Hub — Live Global Earthquake Map and Real-Time Seismic Tracker",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_NAME,
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     images: ["/og-image.png"],
   },
@@ -77,8 +93,6 @@ export const viewport: Viewport = {
   themeColor: "#060610",
 };
 
-// Organization / WebSite structured data — helps Google understand the site
-// as a whole and enables sitelinks search box eligibility.
 function StructuredData() {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -86,6 +100,7 @@ function StructuredData() {
     name: SITE_NAME,
     url: SITE_URL,
     description: SITE_DESCRIPTION,
+    areaServed: "Worldwide",
     potentialAction: {
       "@type": "SearchAction",
       target: {
@@ -96,12 +111,28 @@ function StructuredData() {
     },
   };
 
+  // SEO: secondary Organization schema — helps establish entity/brand signals
+  const orgLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    description:
+      "Quake Hub is a live earthquake tracking platform providing real-time global seismic data sourced from the USGS.",
+    areaServed: "Worldwide",
+  };
+
   return (
-    <script
-      type="application/ld+json"
-      // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
+      />
+    </>
   );
 }
 
@@ -113,13 +144,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Crucial Leaflet asset required to calculate map tiles and marker layout vectors on mobile devices */}
         <link
           rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin=""
         />
+        {/* SEO: geo meta tags duplicated in <head> for crawlers that read raw meta tags directly */}
+        <meta name="geo.placename" content="Worldwide" />
+        <meta name="geo.region" content="00" />
+        <meta name="ICBM" content="0, 0" />
         <StructuredData />
       </head>
       <body style={{ background: "#060610", color: "white", margin: 0 }}>

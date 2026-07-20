@@ -21,7 +21,6 @@ type Props = {
   selectedCountry?: string;
 };
 
-// Complete coordinate map matching every entry in the dropdown list
 const COUNTRY_COORDINATES: Record<string, [number, number]> = {
   "Afghanistan": [33.9391, 67.7100], "Albania": [41.1533, 20.1683], "Algeria": [28.0339, 1.6596],
   "Andorra": [42.5063, 1.5218], "Angola": [-11.2027, 17.8739], "Antigua and Barbuda": [17.0608, -61.7964],
@@ -110,11 +109,11 @@ function getMagRadius(mag: number) {
 export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Layer[]>([]);
+  const markersGroupRef = useRef<L.LayerGroup | null>(null);
   const zoomTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const router = useRouter();
 
-  // Initialize Map Frame
+  // 1. Initialize Map Frame
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
@@ -138,38 +137,46 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
       .addAttribution('© <a href="https://carto.com">CARTO</a> | USGS')
       .addTo(map);
 
+    // Create a unified LayerGroup to manage markers collectively
+    const markersGroup = L.layerGroup().addTo(map);
+    markersGroupRef.current = markersGroup;
     mapInstanceRef.current = map;
+
+    // Fixed hidden dimension layout issues on load
+    setTimeout(() => map.invalidateSize(), 100);
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
+      markersGroupRef.current = null;
     };
   }, []);
 
-  // Handle Dynamic Camera Sequence (Zoom-In then Zoom-Out for empty states)
+  // 2. Handle Dynamic Camera Sequence safely
   useEffect(() => {
     const map = mapInstanceRef.current;
+    
+    // Clean up older asynchronous cycle operations immediately on dependency shift
     zoomTimersRef.current.forEach(clearTimeout);
     zoomTimersRef.current = [];
 
     if (!map) return;
 
-    // CASE 1: Reset back to broad global viewpoint
     if (!selectedCountry || selectedCountry === "All") {
       map.flyTo([20, 0], 2, { duration: 1.2 });
       return;
     }
 
-    // CASE 2: Empty sequence fallback -> ZOOM IN, HOLD, THEN ZOOM OUT
     if (!zoomSequence || zoomSequence.length === 0) {
       const targetCoords = COUNTRY_COORDINATES[selectedCountry];
       if (targetCoords) {
-        // Step A: Fly into the country geographic center
         map.flyTo(targetCoords, 5, { duration: 1.5 });
 
-        // Step B: Wait 3 seconds, then automatically zoom back out smoothly
         const backOutTimer = setTimeout(() => {
-          map.flyTo([20, 0], 2, { duration: 1.5 });
+          // Verify component is still mounted and context exists before calling
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo([20, 0], 2, { duration: 1.5 });
+          }
         }, 3000);
 
         zoomTimersRef.current.push(backOutTimer);
@@ -179,7 +186,6 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
       return;
     }
 
-    // CASE 3: Active records discovered -> Cycle locations
     if (zoomSequence.length === 1) {
       map.flyTo([zoomSequence[0].lat, zoomSequence[0].lon], 6, { duration: 1.5 });
       return;
@@ -187,7 +193,9 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
 
     zoomSequence.forEach((eq, index) => {
       const timer = setTimeout(() => {
-        map.flyTo([eq.lat, eq.lon], 6, { duration: 1.2 });
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([eq.lat, eq.lon], 6, { duration: 1.2 });
+        }
       }, index * 2000);
       zoomTimersRef.current.push(timer);
     });
@@ -198,13 +206,14 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
     };
   }, [zoomSequence, selectedCountry]);
 
-  // Handle markers rendering
+  // 3. Handle markers rendering via Layer Groups
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map) return;
+    const markersGroup = markersGroupRef.current;
+    if (!map || !markersGroup) return;
 
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
+    // Clear everything instantly inside the layer container instead of loop element drops
+    markersGroup.clearLayers();
 
     data.forEach((eq) => {
       const color = getMagColor(eq.magnitude);
@@ -241,13 +250,14 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
         iconAnchor: [radius, radius],
       });
 
-      const interactionMarker = L.marker([eq.lat, eq.lon], { icon: markerIcon }).addTo(map);
+      const interactionMarker = L.marker([eq.lat, eq.lon], { icon: markerIcon });
 
       interactionMarker.on("click", () => {
         router.push(`/earthquake/${encodeURIComponent(eq.id)}`);
       });
 
-      markersRef.current.push(interactionMarker);
+      // Add directly into our controlled subset layer instance
+      markersGroup.addLayer(interactionMarker);
     });
   }, [data, router]);
 
@@ -255,7 +265,7 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
     <>
       <div
         ref={mapRef}
-        style={{ width: "100%", height: "520px", background: "#060610" }}
+        style={{ width: "100%", height: "520px", background: "#060610", overflow: "hidden" }}
       />
       
       <style jsx global>{`
@@ -304,7 +314,7 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
           display: block !important;
         }
         .quake-node-group:hover .quake-dot {
-          background-opacity: 0.75 !important;
+          background-color: rgba(255, 255, 255, 0.25) !important; /* Fixed broken background-opacity fallback */
           transform: scale(1.1);
         }
         .quake-node-group:hover .quake-hover-card {
