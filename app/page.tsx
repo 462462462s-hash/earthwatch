@@ -71,7 +71,6 @@ const ALL_COUNTRIES = [
                         "Zambia", "Zimbabwe"
 ];
 
-// SEO: FAQ content block — increases on-page text, targets long-tail keyword queries
 const FAQ_ITEMS = [
   {
     q: "How often does Quake Hub update its earthquake data?",
@@ -183,8 +182,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen text-white pb-12 bg-[#060610] antialiased selection:bg-orange-500/30">
+      
+      {/* Google Search Console HTML Verification Meta Tag */}
+      <meta name="google-site-verification" content="googlee957368efd2b5a38" />
 
-      {/* Ticker / Navigation Blocks unchanged for code brevity */}
+      {/* Ticker / Navigation Blocks */}
       <div className="fixed top-0 left-0 right-0 z-[100] h-9 flex items-center bg-gradient-to-r from-[#7c0a00] via-[#c0170a] to-[#7c0a00] border-b border-red-500/40 overflow-hidden group/ticker">
         <div className="flex items-center gap-1.5 px-3 shrink-0 h-full bg-[#3d0500] border-r border-orange-500/30 z-10">
           <Zap size={12} className="text-orange-300 animate-pulse" />
@@ -271,7 +273,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* SEO: semantic <main> wraps all primary page content */}
       <main id="main-content">
         <div className="relative overflow-hidden pt-9">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
@@ -295,7 +296,6 @@ export default function Home() {
               GLOBAL OBSERVATORY ACTIVE
             </div>
 
-            {/* SEO: primary keyword-bearing <h1> */}
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight mb-3 bg-gradient-to-br from-orange-500 via-amber-400 to-red-600 bg-clip-text text-transparent leading-[1.1]">
               QUAKE HUB
             </h1>
@@ -320,7 +320,6 @@ export default function Home() {
           ].map((stat, i) => (
             <div key={i} className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 border ${stat.color}`}>
               <div className="flex items-center justify-between gap-2">
-                {/* SEO: stat labels upgraded to <h3> for keyword-relevant heading hierarchy */}
                 <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase truncate m-0">{stat.label}</h3>
                 <span className={`${stat.text} opacity-70 shrink-0`}>{stat.icon}</span>
               </div>
@@ -351,38 +350,10 @@ export default function Home() {
                 </div>
               </div>
             )}
-              {/* Recent Earthquakes — real crawlable internal links */}
-        <section className="px-4 sm:px-6 pb-8 max-w-6xl mx-auto">
-          <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4">
-            Recent Earthquake Reports
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {earthquakes
-              .slice()
-              .sort((a, b) => b.time - a.time)
-              .slice(0, 30)
-              .map((eq) => (
-                <Link
-                  key={eq.id}
-                  href={`/earthquake/${encodeURIComponent(eq.id)}`}
-                  className="flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 bg-white/[0.01] transition-colors text-xs"
-                >
-                  <span className="text-orange-300 font-bold font-mono">
-                    M{eq.magnitude.toFixed(1)}
-                  </span>
-                  <span className="text-white/70 truncate flex-1 mx-2">{eq.place}</span>
-                  <span className="text-orange-400/40 shrink-0">
-                    {new Date(eq.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </Link>
-              ))}
-          </div>
-        </section>
-        
+            
             <div className="px-4 py-3 bg-orange-500/[0.04] border-b border-orange-500/15 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-                {/* SEO: section label upgraded to <h2> */}
                 <h2 className="text-[10px] text-orange-300/70 font-bold tracking-widest uppercase m-0">Live Earthquake Map — Geospatial Overlay</h2>
                 {country !== "All" && (
                   <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/15 border border-orange-500/30 text-orange-400 tracking-wider uppercase">
@@ -409,7 +380,35 @@ export default function Home() {
           </div>
         </div>
 
-        {/* SEO: expanded text content section with keyword-rich headings and paragraphs */}
+        {/* Recent Earthquakes Reports */}
+        <section className="px-4 sm:px-6 pb-8 max-w-6xl mx-auto">
+          <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4">
+            Recent Earthquake Reports
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {earthquakes
+              .slice()
+              .sort((a, b) => b.time - a.time)
+              .slice(0, 30)
+              .map((eq) => (
+                <Link
+                  key={eq.id}
+                  href={`/earthquake/${encodeURIComponent(eq.id)}`}
+                  className="flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 bg-white/[0.01] transition-colors text-xs"
+                >
+                  <span className="text-orange-300 font-bold font-mono">
+                    M{eq.magnitude.toFixed(1)}
+                  </span>
+                  <span className="text-white/70 truncate flex-1 mx-2">{eq.place}</span>
+                  <span className="text-orange-400/40 shrink-0">
+                    {new Date(eq.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </Link>
+              ))}
+          </div>
+        </section>
+
+        {/* SEO Text Core */}
         <section className="px-4 sm:px-6 py-8 max-w-4xl mx-auto space-y-6 text-[#aaa8c0] text-xs sm:text-sm leading-relaxed border-t border-orange-500/10 mt-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div>
@@ -433,7 +432,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* SEO: FAQ block — adds substantial unique text content and targets long-tail search queries */}
+          {/* FAQ Accordion Block */}
           <div>
             <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3">Frequently Asked Questions About Earthquake Tracking</h2>
             <div className="space-y-4">
@@ -453,7 +452,7 @@ export default function Home() {
         QUAKE HUB OBSERVATORY MATRIX • DATA FEED: INTEGRATED USGS DATASTREAMS • SILENT DATA POLL DEPLOYED: 30s INTERVAL
       </footer>
 
-      {/* Global CSS Style tag remains unchanged */}
+      {/* Global CSS Injectors */}
       <style jsx global>{`
         @keyframes ticker {
           0% { transform: translateX(0); }
