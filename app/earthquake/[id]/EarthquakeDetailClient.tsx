@@ -71,7 +71,7 @@ function buildFallbackRecordUrl(eq: EarthquakeDetails) {
 function buildOsmEmbedUrl(lat: number, lon: number) {
   const delta = 1.5;
   const bbox = [lon - delta, lat - delta, lon + delta, lat + delta].join("%2C");
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}`;
+  return `https://openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}`;
 }
 
 function EarthquakeDetailMain() {
