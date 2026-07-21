@@ -6,11 +6,11 @@ const SITE_NAME = "Quake Hub";
 
 // SEO: expanded description with primary + secondary keywords, kept just under ~160 chars
 const SITE_DESCRIPTION =
-  "Quake Hub tracks live earthquakes worldwide with real-time USGS data. View an interactive global earthquake map, magnitude, depth, tsunami alerts, and breaking seismic activity by country.";
+  "Quake Hub tracks live earthquakes worldwide with real-time USGS data.";
 
 // SEO: lengthened, keyword-rich title (primary keyword "live earthquake map" + secondary "real-time tracker" + "seismic alerts")
 const SITE_TITLE =
-  "Quake Hub – Live Earthquake Map, Real-Time Tracker & Global Seismic Alerts";
+  "Quake Hub – Live Earthquake Map";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -1,0 +1,41 @@
+# Quake Hub
+
+> Quake Hub is a live earthquake tracking website. It polls the USGS
+> real-time earthquake feed every 30 seconds and displays seismic events
+> on an interactive world map, with filtering by country, magnitude,
+> depth, tsunami advisory status, and per-event detail pages with news
+> coverage.
+
+Quake Hub is intended for anyone who wants up-to-date information on
+global seismic activity: researchers, journalists, coastal residents,
+travelers, and the general public. All earthquake data is sourced
+directly from the United States Geological Survey (USGS).
+
+## Primary content
+
+- [Live Earthquake Map](https://www.quakehub.com/): the homepage — real-time
+  global earthquake map, country filter, magnitude legend, and recent
+  earthquake report list, refreshed every 30 seconds from USGS.
+- Individual earthquake report pages at `/earthquake/{usgs-event-id}`:
+  magnitude, epicenter coordinates, hypocenter depth, felt-report count,
+  USGS significance score, tsunami advisory status, and related news
+  coverage for each specific earthquake event.
+
+## Data source
+
+- USGS Earthquake Hazards Program real-time feed:
+  https://earthquake.usgs.gov/earthquakes/feed/v1.0/
+
+## Organization
+
+- Name: Quake Hub
+- Location: I8/4, Islamabad, Pakistan
+- Phone: +92 348 5580418
+- Social: Facebook, X (Twitter), Instagram, YouTube, LinkedIn (linked in
+  site footer)
+
+## Notes for automated crawlers / LLMs
+
+- Earthquake data on this site is live and changes continuously; do not
+  treat any single magnitude/location value as static or cache it long-term.
+- The canonical source of truth for raw earthquake data is USGS, linked above.

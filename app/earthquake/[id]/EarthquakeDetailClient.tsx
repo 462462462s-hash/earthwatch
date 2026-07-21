@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Activity, Globe, Compass, ShieldAlert, ListTree,
   Newspaper, ExternalLink, MapPin,
 } from "lucide-react";
 import Link from "next/link";
+import ShareButtons from "@/app/components/Sharebuttons";
+import SiteFooter from "@/app/components/SiteFooter";
 
 type EarthquakeDetails = {
   id: string;
@@ -169,6 +171,24 @@ function EarthquakeDetailMain() {
     fetchDetail();
   }, [params, searchParams]);
 
+  const eventJsonLd = useMemo(() => {
+    if (!eq) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      name: `M${eq.magnitude.toFixed(1)} Earthquake — ${eq.place}`,
+      startDate: eq.time ? new Date(eq.time).toISOString() : undefined,
+      eventStatus: "https://schema.org/EventScheduled",
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      location: {
+        "@type": "Place",
+        name: eq.place,
+        geo: { "@type": "GeoCoordinates", latitude: eq.lat, longitude: eq.lon },
+      },
+      description: `Magnitude ${eq.magnitude.toFixed(1)} earthquake recorded near ${eq.city || eq.place}${eq.country ? `, ${eq.country}` : ""} at a depth of ${eq.depth.toFixed(1)} km.`,
+    };
+  }, [eq]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#060610] text-white flex flex-col items-center justify-center gap-4 px-4">
@@ -194,6 +214,7 @@ function EarthquakeDetailMain() {
   const newsTextOnly   = news.filter(a => !a.imageUrl);
 
   const locationLabel = eq.country ? `${eq.region}, ${eq.country}` : eq.place;
+  const shareTitle = `M${eq.magnitude.toFixed(1)} Earthquake — ${eq.place} | Quake Hub`;
   const listRecords = [
     <>An earthquake event discovered with identification tracking parameter signature <span className="text-orange-400 font-bold font-mono bg-orange-500/10 px-1 rounded">{eq.id}</span>.</>,
     <>A magnitude recording of <span className="text-orange-400 font-black font-mono">M{eq.magnitude.toFixed(1)}</span> registered at the <span className="text-orange-400 font-bold">{locationLabel}</span> sector matrix.</>,
@@ -209,16 +230,21 @@ function EarthquakeDetailMain() {
 
   return (
     <main className="min-h-screen text-white pb-16 antialiased bg-[#060610]">
-      <nav className="sticky top-0 z-50 flex items-center px-4 sm:px-6 h-14 bg-[#060610]/80 backdrop-blur-md border-b border-orange-500/15">
+      {eventJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }} />
+      )}
+
+      <nav className="sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 h-14 bg-[#060610]/80 backdrop-blur-md border-b border-orange-500/15">
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-xs font-bold text-orange-400/80 hover:text-orange-300 transition-colors uppercase tracking-wider"
         >
           <ArrowLeft size={14} /> Back <span className="hidden xs:inline">to Live Earthquake Map</span>
         </button>
+        <ShareButtons title={shareTitle} />
       </nav>
 
-      <article className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 space-y-4 sm:space-y-6">
+      <article className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 space-y-4 sm:space-y-6" itemScope itemType="https://schema.org/Event">
 
         <header className="border border-orange-500/20 rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-white/[0.02] to-transparent">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
@@ -238,12 +264,14 @@ function EarthquakeDetailMain() {
                   </span>
                 )}
               </div>
-              {/* SEO: primary keyword-bearing <h1>, matches server-rendered <title> */}
-              <h1 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-tight break-words leading-tight">
+              <h1 itemProp="name" className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-tight break-words leading-tight">
                 M{eq.magnitude.toFixed(1)} Earthquake — {eq.place}
               </h1>
               <p className="text-orange-400/40 text-[10px] sm:text-xs mt-1.5 tracking-widest leading-relaxed">
-                DETECTION TIMELOCK: {eq.time ? new Date(eq.time).toUTCString() : "UNKNOWN TIME"}
+                DETECTION TIMELOCK:{" "}
+                <time dateTime={eq.time ? new Date(eq.time).toISOString() : undefined} itemProp="startDate">
+                  {eq.time ? new Date(eq.time).toUTCString() : "UNKNOWN TIME"}
+                </time>
               </p>
             </div>
             <div className="flex items-center gap-4 self-start md:self-auto bg-white/5 p-3 sm:p-4 rounded-xl border border-white/5 w-full md:w-auto justify-between md:justify-start shrink-0">
@@ -261,10 +289,9 @@ function EarthquakeDetailMain() {
           </div>
         </header>
 
-        {/* ── TELEMETRY GRID ── */}
         <section aria-labelledby="epicenter-heading">
           <h2 id="epicenter-heading" className="sr-only">Epicenter, Coordinates, and Depth Data for This Earthquake</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4" itemProp="location" itemScope itemType="https://schema.org/Place">
             <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase m-0">Epicenter Region</h3>
@@ -272,14 +299,14 @@ function EarthquakeDetailMain() {
               </div>
               <div className="min-w-0">
                 <div className="text-[10px] sm:text-xs text-orange-400/40">Target City / Zone</div>
-                <div className="text-base sm:text-lg font-bold text-orange-300 truncate">{eq.city}</div>
+                <div itemProp="name" className="text-base sm:text-lg font-bold text-orange-300 truncate">{eq.city}</div>
                 {eq.country && eq.country !== eq.city && (
                   <div className="text-[10px] sm:text-xs text-orange-400/40 mt-0.5 truncate">{eq.country}</div>
                 )}
               </div>
             </div>
 
-            <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+            <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4" itemProp="geo" itemScope itemType="https://schema.org/GeoCoordinates">
               <div className="flex items-center justify-between">
                 <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase m-0">Coordinates</h3>
                 <Compass size={16} className="text-orange-400/60 shrink-0" />
@@ -287,11 +314,11 @@ function EarthquakeDetailMain() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="min-w-0">
                   <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-wider">LATITUDE</div>
-                  <div className="text-sm sm:text-base font-mono font-bold text-white truncate">{eq.lat.toFixed(4)}°</div>
+                  <div itemProp="latitude" className="text-sm sm:text-base font-mono font-bold text-white truncate">{eq.lat.toFixed(4)}°</div>
                 </div>
                 <div className="min-w-0">
                   <div className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-wider">LONGITUDE</div>
-                  <div className="text-sm sm:text-base font-mono font-bold text-white truncate">{eq.lon.toFixed(4)}°</div>
+                  <div itemProp="longitude" className="text-sm sm:text-base font-mono font-bold text-white truncate">{eq.lon.toFixed(4)}°</div>
                 </div>
               </div>
             </div>
@@ -311,7 +338,6 @@ function EarthquakeDetailMain() {
           </div>
         </section>
 
-        {/* ── STATS ROW ── */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-3 sm:p-4">
             <h3 className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-widest uppercase mb-1 truncate m-0">Felt Reports</h3>
@@ -332,10 +358,9 @@ function EarthquakeDetailMain() {
           </div>
         </div>
 
-        {/* SEO: extra descriptive paragraph, adds unique per-page text content with location + magnitude keywords */}
         <section className="border border-orange-500/10 rounded-2xl p-4 sm:p-5 bg-white/[0.01]">
           <h2 className="text-xs text-orange-300/80 font-bold tracking-widest uppercase mb-2">Earthquake Summary for {eq.place}</h2>
-          <p className="text-[11px] sm:text-xs text-orange-100/50 leading-relaxed">
+          <p itemProp="description" className="text-[11px] sm:text-xs text-orange-100/50 leading-relaxed">
             This magnitude {eq.magnitude.toFixed(1)} earthquake was recorded near {eq.city || eq.place}
             {eq.country ? `, ${eq.country}` : ""} at a hypocenter depth of {eq.depth.toFixed(1)} km.
             {eq.tsunami === 1
@@ -347,7 +372,6 @@ function EarthquakeDetailMain() {
           </p>
         </section>
 
-        {/* ── NEWS SECTION ── */}
         <section className="border border-orange-500/15 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 sm:px-5 sm:py-4 bg-orange-500/[0.04] border-b border-orange-500/10 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
@@ -418,12 +442,14 @@ function EarthquakeDetailMain() {
                       className={`group relative rounded-xl overflow-hidden border border-white/5 hover:border-orange-500/40 transition-all duration-300 bg-[#0a0a14] flex flex-col ${i === 0 ? "sm:col-span-2 lg:col-span-2" : ""}`}
                     >
                       <div className="relative overflow-hidden w-full h-36 sm:h-40 md:h-44">
-                        {/* SEO: descriptive, keyword-rich alt text (place + magnitude + headline) instead of just the raw title */}
                         <img
                           src={article.imageUrl!}
                           alt={`News photo for: ${article.title} — M${eq.magnitude.toFixed(1)} earthquake, ${eq.place}`}
                           className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                           loading="lazy"
+                          decoding="async"
+                          width={600}
+                          height={340}
                           onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/40 to-transparent" />
@@ -483,7 +509,6 @@ function EarthquakeDetailMain() {
           )}
         </section>
 
-        {/* ── FULL EVENT RECORD ── */}
         <section className="border border-orange-500/15 rounded-2xl overflow-hidden bg-white/[0.01]">
           <div className="px-4 py-3 sm:px-5 sm:py-4 bg-orange-500/[0.04] border-b border-orange-500/10 flex items-center gap-2">
             <ListTree size={14} className="text-orange-400/60 shrink-0" />
@@ -499,7 +524,15 @@ function EarthquakeDetailMain() {
             </ul>
           </div>
         </section>
+
+        <div className="flex justify-center pt-2">
+          <ShareButtons title={shareTitle} />
+        </div>
       </article>
+
+      <div className="mt-10">
+        <SiteFooter />
+      </div>
     </main>
   );
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback, memo } from "react";
 import dynamic from "next/dynamic";
 import { Activity, AlertTriangle, Globe, Zap, Check, ShieldAlert } from "lucide-react";
 import Link from "next/link";
-import ShareButtons from "./components/Sharebuttons";
-import SiteFooter from "./components/SiteFooter";
+import ShareButtons from "./Sharebuttons";
+import SiteFooter from "./SiteFooter";
 
-const EarthquakeMap = dynamic(() => import("./components/EarthquakeMap"), {
+const EarthquakeMap = dynamic(() => import("./EarthquakeMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-[350px] sm:h-[520px] rounded-2xl bg-[#0d0d1a] border border-orange-900/30 flex items-center justify-center">
@@ -96,7 +96,93 @@ const FAQ_ITEMS = [
   },
 ];
 
-export default function Home() {
+// --- Memoized subcomponents so a 30s data refresh doesn't force the whole
+//     tree (map, ticker, FAQ, footer) to re-render — only the pieces whose
+//     props actually changed do. This is the main mobile jank/CPU fix. ---
+
+const MetricGrid = memo(function MetricGrid({
+  total, highRisk, major,
+}: { total: number; highRisk: number; major: number }) {
+  const stats = [
+    { label: "Seismic Disruptions", value: total || "-", icon: <Activity size={16} />, color: "bg-amber-500/5 border-amber-500/20", text: "text-amber-400" },
+    { label: "Severe Stress (M5+)", value: highRisk || "-", icon: <AlertTriangle size={16} />, color: "bg-orange-500/5 border-orange-500/20", text: "text-orange-400" },
+    { label: "Critical Anomalies (M6+)", value: major || "-", icon: <Zap size={16} />, color: "bg-red-500/5 border-red-500/20", text: "text-red-400" },
+    { label: "Tracking Matrix", value: "LIVE", icon: <Globe size={16} />, color: "bg-emerald-500/5 border-emerald-500/20", text: "text-emerald-400" },
+  ];
+  return (
+    <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-6 pb-6 sm:pb-8 max-w-6xl mx-auto list-none">
+      {stats.map((stat, i) => (
+        <li key={i} className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 border ${stat.color}`}>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase truncate m-0">{stat.label}</h3>
+            <span className={`${stat.text} opacity-70 shrink-0`}>{stat.icon}</span>
+          </div>
+          <div className={`text-2xl sm:text-3xl font-black font-mono ${stat.text}`}>{stat.value}</div>
+        </li>
+      ))}
+    </ul>
+  );
+});
+
+const Ticker = memo(function Ticker({ items }: { items: { id: string; text: string }[] }) {
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[100] h-9 flex items-center bg-gradient-to-r from-[#7c0a00] via-[#c0170a] to-[#7c0a00] border-b border-red-500/40 overflow-hidden group/ticker">
+      <div className="flex items-center gap-1.5 px-3 shrink-0 h-full bg-[#3d0500] border-r border-orange-500/30 z-10">
+        <Zap size={12} className="text-orange-300 animate-pulse" />
+        <span className="text-orange-200 text-[10px] font-black tracking-widest">LIVE</span>
+      </div>
+      <div className="flex-1 overflow-hidden relative h-full flex items-center" aria-label="Latest earthquake headlines ticker">
+        <div className="flex whitespace-nowrap animate-ticker text-[11px] font-medium text-red-100 tracking-wide group-hover/ticker:pause-anim">
+          {items.length > 0 ? (
+            [...items, ...items].map((item, i) => (
+              <Link
+                key={`${item.id}-${i}`}
+                href={`/earthquake/${item.id}`}
+                className="mx-8 sm:mx-12 flex items-center gap-1.5 hover:text-orange-300 transition-colors cursor-pointer select-none"
+              >
+                <span>⚡</span> {item.text}
+              </Link>
+            ))
+          ) : (
+            <span className="mx-8 opacity-60 text-xs">live seismic updates...</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const RecentReports = memo(function RecentReports({ earthquakes }: { earthquakes: Earthquake[] }) {
+  const recent = useMemo(
+    () => earthquakes.slice().sort((a, b) => b.time - a.time).slice(0, 30),
+    [earthquakes]
+  );
+  return (
+    <section className="px-4 sm:px-6 pb-8 max-w-6xl mx-auto" aria-labelledby="recent-reports-heading">
+      <h2 id="recent-reports-heading" className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4">
+        Recent Earthquake Reports
+      </h2>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 list-none">
+        {recent.map((eq) => (
+          <li key={eq.id}>
+            <Link
+              href={`/earthquake/${encodeURIComponent(eq.id)}`}
+              className="flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 bg-white/[0.01] transition-colors text-xs"
+            >
+              <span className="text-orange-300 font-bold font-mono">M{eq.magnitude.toFixed(1)}</span>
+              <span className="text-white/70 truncate flex-1 mx-2">{eq.place}</span>
+              <time dateTime={new Date(eq.time).toISOString()} className="text-orange-400/40 shrink-0">
+                {new Date(eq.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </time>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+});
+
+export default function HomeClient() {
   const [earthquakes, setEarthquakes] = useState<Earthquake[]>([]);
   const [country, setCountry] = useState("All");
   const [openCountry, setOpenCountry] = useState(false);
@@ -117,9 +203,9 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`api/data`);
+      const res = await fetch(`/api/data`);
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
       if (!data?.earthquakes) return;
@@ -138,18 +224,43 @@ export default function Home() {
     } catch (err: unknown) {
       console.error("Telemetry collection disruption:", err);
     }
-  };
-
-  useEffect(() => {
-    fetchData();
-    const refreshInterval = setInterval(() => { fetchData(); }, 30000);
-    return () => clearInterval(refreshInterval);
   }, []);
 
+  // Poll every 30s, but pause while the tab/screen is hidden — this is the
+  // single biggest mobile battery/CPU win: background tabs on a phone stop
+  // firing fetches and re-renders entirely until the user comes back.
+  useEffect(() => {
+    fetchData();
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const start = () => {
+      if (interval) return;
+      interval = setInterval(fetchData, 30000);
+    };
+    const stop = () => {
+      if (interval) clearInterval(interval);
+      interval = null;
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        fetchData();
+        start();
+      }
+    };
+
+    start();
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [fetchData]);
+
   const filtered = useMemo(() => {
-    return earthquakes.filter((e) => {
-      return country === "All" || e.place.toLowerCase().includes(country.toLowerCase());
-    });
+    return earthquakes.filter((e) => country === "All" || e.place.toLowerCase().includes(country.toLowerCase()));
   }, [earthquakes, country]);
 
   const zoomSequence = useMemo(() => {
@@ -168,50 +279,18 @@ export default function Home() {
       .map((q) => {
         const mins = Math.max(1, Math.floor((Date.now() - q.time) / 60000));
         const timeStr = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
-        return {
-          id: q.id,
-          text: `M${q.magnitude.toFixed(1)} — ${q.place} — ${timeStr}`
-        };
+        return { id: q.id, text: `M${q.magnitude.toFixed(1)} — ${q.place} — ${timeStr}` };
       });
   }, [earthquakes]);
 
   const filteredCountries = useMemo(() => {
     if (!countrySearch) return ALL_COUNTRIES;
-    return ALL_COUNTRIES.filter((c) =>
-      c.toLowerCase().startsWith(countrySearch.toLowerCase())
-    );
+    return ALL_COUNTRIES.filter((c) => c.toLowerCase().startsWith(countrySearch.toLowerCase()));
   }, [countrySearch]);
 
   return (
     <div className="min-h-screen text-white pb-12 bg-[#060610] antialiased selection:bg-orange-500/30">
-
-      {/* Google Search Console HTML Verification Meta Tag */}
-      <meta name="google-site-verification" content="googlee957368efd2b5a38" />
-
-      {/* Ticker / Navigation Blocks */}
-      <div className="fixed top-0 left-0 right-0 z-[100] h-9 flex items-center bg-gradient-to-r from-[#7c0a00] via-[#c0170a] to-[#7c0a00] border-b border-red-500/40 overflow-hidden group/ticker">
-        <div className="flex items-center gap-1.5 px-3 shrink-0 h-full bg-[#3d0500] border-r border-orange-500/30 z-10">
-          <Zap size={12} className="text-orange-300 animate-pulse" />
-          <span className="text-orange-200 text-[10px] font-black tracking-widest">LIVE</span>
-        </div>
-        <div className="flex-1 overflow-hidden relative h-full flex items-center" aria-label="Latest earthquake headlines ticker">
-          <div className="flex whitespace-nowrap animate-ticker text-[11px] font-medium text-red-100 tracking-wide group-hover/ticker:pause-anim">
-            {latestNewsObjects.length > 0 ? (
-              [...latestNewsObjects, ...latestNewsObjects].map((item, i) => (
-                <Link
-                  key={`${item.id}-${i}`}
-                  href={`/earthquake/${item.id}`}
-                  className="mx-8 sm:mx-12 flex items-center gap-1.5 hover:text-orange-300 transition-colors cursor-pointer select-none"
-                >
-                  <span>⚡</span> {item.text}
-                </Link>
-              ))
-            ) : (
-              <span className="mx-8 opacity-60 text-xs">live seismic updates...</span>
-            )}
-          </div>
-        </div>
-      </div>
+      <Ticker items={latestNewsObjects} />
 
       <nav className="sticky top-9 z-50 flex justify-between items-center px-4 sm:px-6 py-3 bg-[#060610]/92 backdrop-blur-md border-b border-orange-500/15" aria-label="Main navigation">
         <div className="flex items-center gap-3">
@@ -224,8 +303,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Share icons + country filter live together in the nav bar so they're
-            immediately visible without scrolling — the most "findable" spot on the page. */}
         <div className="flex items-center gap-2 sm:gap-3">
           <ShareButtons className="hidden sm:flex" />
 
@@ -280,17 +357,14 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Mobile-only share row: on small screens the nav bar hides the desktop
-          ShareButtons (above) to save space, so it re-appears full-width here
-          right under the header where it's still easy to find on a phone. */}
-      <div className="sm:hidden flex justify-center py-3 border-b border-orange-500/10">
-        <ShareButtons />
-      </div>
-
       <main id="main-content">
         <div className="relative overflow-hidden pt-9">
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-            {[300, 500, 700, 900].map((size) => (
+          {/* Reduced from 4 blurred/animated rings to 2 — large blurred, animated,
+              absolutely-positioned layers are one of the heaviest paint costs
+              on low-end mobile GPUs. This keeps the visual effect while cutting
+              composited layers in half. */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" aria-hidden="true">
+            {[400, 800].map((size) => (
               <div
                 key={size}
                 className="absolute rounded-full border animate-pulse-slow"
@@ -298,7 +372,6 @@ export default function Home() {
                   width: size,
                   height: size,
                   borderColor: `rgba(255,80,0,${0.06 - size * 0.00005})`,
-                  animationDelay: `${size * 0.001}s`,
                 }}
               />
             ))}
@@ -314,37 +387,18 @@ export default function Home() {
               QUAKE HUB
             </h1>
             <p className="text-orange-300/60 text-xs sm:text-sm tracking-widest font-medium px-4 max-w-md mx-auto sm:max-w-none">
-               Live Earthquake Map &amp; Real-Time Seismic Tracker
+              Live Earthquake Map &amp; Real-Time Seismic Tracker
             </p>
             {lastUpdated && (
               <p className="text-orange-600/50 text-[10px] mt-2 font-mono">
-                Telemetry Feed Synchronized: {lastUpdated.toLocaleTimeString()}
+                Telemetry Feed Synchronized: <time dateTime={lastUpdated.toISOString()}>{lastUpdated.toLocaleTimeString()}</time>
               </p>
             )}
           </div>
         </div>
 
-        {/* Metric Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-6 pb-6 sm:pb-8 max-w-6xl mx-auto">
-          {[
-            { label: "Seismic Disruptions", value: filtered.length || "-", icon: <Activity size={16} />, color: "bg-amber-500/5 border-amber-500/20", text: "text-amber-400" },
-            { label: "Severe Stress (M5+)", value: highRisk.length || "-", icon: <AlertTriangle size={16} />, color: "bg-orange-500/5 border-orange-500/20", text: "text-orange-400" },
-            { label: "Critical Anomalies (M6+)", value: major.length || "-", icon: <Zap size={16} />, color: "bg-red-500/5 border-red-500/20", text: "text-red-400" },
-            { label: "Tracking Matrix", value: "LIVE", icon: <Globe size={16} />, color: "bg-emerald-500/5 border-emerald-500/20", text: "text-emerald-400" },
-          ].map((stat, i) => (
-            <div key={i} className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 border ${stat.color}`}>
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase truncate m-0">{stat.label}</h3>
-                <span className={`${stat.text} opacity-70 shrink-0`}>{stat.icon}</span>
-              </div>
-              <div className={`text-2xl sm:text-3xl font-black font-mono ${stat.text}`}>
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </div>
+        <MetricGrid total={filtered.length} highRisk={highRisk.length} major={major.length} />
 
-        {/* Map Container Interface */}
         <div className="px-4 sm:px-6 pb-12 max-w-6xl mx-auto relative z-10">
           <div className="rounded-2xl border border-orange-500/20 overflow-hidden bg-[#0d0d1a]/50 relative">
             {filtered.length === 0 && country !== "All" && (
@@ -354,9 +408,7 @@ export default function Home() {
                     <ShieldAlert size={18} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-black uppercase text-emerald-400 tracking-wider">
-                      Lithospheric Stable Condition
-                    </div>
+                    <div className="text-xs font-black uppercase text-emerald-400 tracking-wider">Lithospheric Stable Condition</div>
                     <div className="text-[11px] text-emerald-100/70 leading-relaxed mt-0.5">
                       No active seismic anomalies discovered inside <span className="text-white font-semibold">{country}</span> during the current recording epoch.
                     </div>
@@ -371,7 +423,7 @@ export default function Home() {
                 <h2 className="text-[10px] text-orange-300/70 font-bold tracking-widest uppercase m-0">Live Earthquake Map — Geospatial Overlay</h2>
                 {country !== "All" && (
                   <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/15 border border-orange-500/30 text-orange-400 tracking-wider uppercase">
-                     {country}
+                    {country}
                   </span>
                 )}
               </div>
@@ -394,45 +446,19 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Recent Earthquakes Reports */}
-        <section className="px-4 sm:px-6 pb-8 max-w-6xl mx-auto">
-          <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4">
-            Recent Earthquake Reports
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {earthquakes
-              .slice()
-              .sort((a, b) => b.time - a.time)
-              .slice(0, 30)
-              .map((eq) => (
-                <Link
-                  key={eq.id}
-                  href={`/earthquake/${encodeURIComponent(eq.id)}`}
-                  className="flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 bg-white/[0.01] transition-colors text-xs"
-                >
-                  <span className="text-orange-300 font-bold font-mono">
-                    M{eq.magnitude.toFixed(1)}
-                  </span>
-                  <span className="text-white/70 truncate flex-1 mx-2">{eq.place}</span>
-                  <span className="text-orange-400/40 shrink-0">
-                    {new Date(eq.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </Link>
-              ))}
-          </div>
-        </section>
+        <RecentReports earthquakes={earthquakes} />
 
-        {/* SEO Text Core */}
-        <section className="px-4 sm:px-6 py-8 max-w-4xl mx-auto space-y-6 text-[#aaa8c0] text-xs sm:text-sm leading-relaxed border-t border-orange-500/10 mt-6">
+        <section className="px-4 sm:px-6 py-8 max-w-4xl mx-auto space-y-6 text-[#aaa8c0] text-xs sm:text-sm leading-relaxed border-t border-orange-500/10 mt-6" aria-labelledby="seo-heading">
+          <h2 id="seo-heading" className="sr-only">About Earthquake Tracking, Magnitude, and Global Seismic Monitoring</h2>
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">How to Track Earthquakes in Real-Time</h2>
+              <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">How to Track Earthquakes in Real-Time</h3>
               <p>
                 Quake Hub syncs directly with the USGS real-time earthquake feed, tracking live seismic events across every continent. Use the live earthquake map to filter activity by country, view exact magnitude and depth, and follow breaking seismic alerts as they happen — all within a real-time earthquake tracker updated every 30 seconds.
               </p>
             </div>
             <div>
-              <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Understanding Earthquake Magnitude Scales</h2>
+              <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Understanding Earthquake Magnitude Scales</h3>
               <p>
                 Earthquakes registering below magnitude 4.0 are often micro-earthquakes that go unnoticed, while incidents exceeding magnitude 5.0 represent high-stress releases capable of localized damage. Critical global earthquake alerts are broadcast via our live ticker feed whenever a seismic anomaly clears magnitude 6.0.
               </p>
@@ -440,20 +466,21 @@ export default function Home() {
           </div>
 
           <div>
-            <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Why Monitor Global Seismic Activity?</h2>
+            <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Why Monitor Global Seismic Activity?</h3>
             <p>
               Real-time earthquake monitoring helps communities, researchers, and travelers stay informed about tectonic activity near fault lines and subduction zones. Quake Hub's live earthquake tracker aggregates USGS data on magnitude, hypocenter depth, tsunami advisory status, and felt reports so you can quickly assess seismic risk in any country, from the Pacific Ring of Fire to the Mediterranean and beyond.
             </p>
           </div>
 
-          {/* FAQ Accordion Block */}
-          <div>
-            <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3">Frequently Asked Questions About Earthquake Tracking</h2>
+          <div itemScope itemType="https://schema.org/FAQPage">
+            <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3">Frequently Asked Questions About Earthquake Tracking</h3>
             <div className="space-y-4">
               {FAQ_ITEMS.map((item) => (
-                <div key={item.q}>
-                  <h3 className="text-xs sm:text-sm font-bold text-white/90 mb-1">{item.q}</h3>
-                  <p className="text-[11px] sm:text-xs text-orange-100/50">{item.a}</p>
+                <div key={item.q} itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+                  <h4 itemProp="name" className="text-xs sm:text-sm font-bold text-white/90 mb-1">{item.q}</h4>
+                  <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+                    <p itemProp="text" className="text-[11px] sm:text-xs text-orange-100/50">{item.a}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -461,12 +488,8 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer now uses the shared SiteFooter component: it renders the
-          follow/share icons again, plus your address, phone number, and
-          YouTube/LinkedIn links — replacing the old plain text footer. */}
       <SiteFooter />
 
-      {/* Global CSS Injectors */}
       <style jsx global>{`
         @keyframes ticker {
           0% { transform: translateX(0); }
@@ -476,7 +499,7 @@ export default function Home() {
           animation: ticker 55s linear infinite;
           width: max-content;
         }
-        .group\/ticker:hover .animate-ticker {
+        .group\\/ticker:hover .animate-ticker {
           animation-play-state: paused !important;
         }
         @keyframes pulse-slow {
@@ -492,6 +515,13 @@ export default function Home() {
         }
         .animate-fade-in-up {
           animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* Respect users who've asked for less motion — also reduces mobile CPU/battery draw */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-ticker, .animate-pulse-slow, .animate-fade-in-up, .animate-pulse, .animate-ping, .animate-spin {
+            animation-duration: 0.001ms !important;
+            animation-iteration-count: 1 !important;
+          }
         }
       `}</style>
     </div>
