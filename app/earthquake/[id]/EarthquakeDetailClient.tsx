@@ -81,7 +81,7 @@ function EarthquakeDetailMain() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [eq, setEq]                   = useState<EarthquakeDetails | null>(null);
+  const [eq, setEq]                 = useState<EarthquakeDetails | null>(null);
   const [loading, setLoading]         = useState(true);
   const [news, setNews]               = useState<NewsArticle[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
@@ -410,7 +410,7 @@ function EarthquakeDetailMain() {
                     src={buildOsmEmbedUrl(eq.lat, eq.lon)}
                     className="w-full h-full border-0 pointer-events-none transition-transform duration-300 group-hover:scale-[1.03]"
                     loading="lazy"
-                    title={`Epicenter map location for the M${eq.magnitude.toFixed(1)} earthquake near ${eq.place}`}
+                    title={`Interactive map view showing epicenter location near ${eq.place} at latitude ${eq.lat.toFixed(2)} and longitude ${eq.lon.toFixed(2)}`}
                   />
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500 text-[#0a0a14] text-[9px] sm:text-[10px] font-bold tracking-wide shadow-lg animate-pulse">
                     <ExternalLink size={10} />
@@ -444,7 +444,7 @@ function EarthquakeDetailMain() {
                       <div className="relative overflow-hidden w-full h-36 sm:h-40 md:h-44">
                         <img
                           src={article.imageUrl!}
-                          alt={`News photo for: ${article.title} — M${eq.magnitude.toFixed(1)} earthquake, ${eq.place}`}
+                          alt={`${article.title} - report from ${article.source} on magnitude ${eq.magnitude.toFixed(1)} earthquake near ${eq.place}`}
                           className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                           loading="lazy"
                           decoding="async"

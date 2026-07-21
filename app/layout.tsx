@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Analytics from "./components/Analytics";
 import "./globals.css";
 
 const SITE_URL = "https://earthwatch-iihz-azure.vercel.app";
@@ -6,11 +7,11 @@ const SITE_NAME = "Quake Hub";
 
 // SEO: expanded description with primary + secondary keywords, kept just under ~160 chars
 const SITE_DESCRIPTION =
-  "Quake Hub tracks live earthquakes worldwide with real-time USGS data.";
+  "Quake Hub tracks live earthquakes worldwide with real-time USGS data. Monitor global seismic activity with interactive maps.";
 
-// SEO: lengthened, keyword-rich title (primary keyword "live earthquake map" + secondary "real-time tracker" + "seismic alerts")
+// SEO: lengthened, keyword-rich title
 const SITE_TITLE =
-  "Quake Hub – Live Earthquake Map";
+  "Quake Hub – Live Earthquake Map & Global Real-Time Seismic Tracker";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -37,15 +38,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "./",
   },
-  // SEO: geo tags. Note — geo.* meta tags are most meaningful on location-specific
-  // pages (see app/earthquake/[id]/page.tsx, which sets real lat/lon per event).
-  // On the global homepage we declare worldwide coverage instead of a single region.
   other: {
     "geo.placename": "Worldwide",
     "geo.region": "00",
-    "ICBM": "0, 0",
-    "coverage": "Worldwide",
-    "distribution": "Global",
+    ICBM: "0, 0",
+    coverage: "Worldwide",
+    distribution: "Global",
   },
   openGraph: {
     type: "website",
@@ -111,7 +109,6 @@ function StructuredData() {
     },
   };
 
-  // SEO: secondary Organization schema — helps establish entity/brand signals
   const orgLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -150,13 +147,14 @@ export default function RootLayout({
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin=""
         />
-        {/* SEO: geo meta tags duplicated in <head> for crawlers that read raw meta tags directly */}
         <meta name="geo.placename" content="Worldwide" />
         <meta name="geo.region" content="00" />
         <meta name="ICBM" content="0, 0" />
         <StructuredData />
       </head>
       <body style={{ background: "#060610", color: "white", margin: 0 }}>
+        {/* Google Analytics initializes here once for all routes */}
+        <Analytics />
         {children}
       </body>
     </html>

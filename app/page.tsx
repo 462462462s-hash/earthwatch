@@ -75,24 +75,24 @@ const ALL_COUNTRIES = [
 
 const FAQ_ITEMS = [
   {
-    q: "How often does Quake Hub update its earthquake data?",
-    a: "Quake Hub polls the USGS real-time earthquake feed every 30 seconds, so newly detected seismic events typically appear on the live earthquake map within half a minute of being published.",
+    q: "How often does this real-time earthquake tracker update?",
+    a: "Quake Hub polls the official USGS real-time earthquake feed every 30 seconds, so newly detected seismic activity appears on our live earthquake map almost instantaneously.",
   },
   {
-    q: "What magnitude of earthquake is considered dangerous?",
-    a: "Earthquakes below magnitude 4.0 are usually minor and rarely felt. Magnitude 5.0+ events can cause moderate structural stress, while magnitude 6.0+ earthquakes are classified as critical anomalies capable of significant damage near the epicenter.",
+    q: "What magnitude on the live earthquake map is considered dangerous?",
+    a: "Earthquakes below magnitude 4.0 are usually minor. Magnitude 5.0+ events recorded on our real-time earthquake tracker can cause structural stress, while magnitude 6.0+ seismic anomalies are critical.",
   },
   {
-    q: "Does Quake Hub track tsunami risk?",
-    a: "Yes. Each earthquake record includes tsunami advisory status sourced directly from USGS alert levels, so you can quickly check whether a coastal seismic event carries an elevated tsunami threat.",
+    q: "Does this USGS earthquake map track tsunami advisories?",
+    a: "Yes. Every seismic event logged in our live earthquake map includes real-time USGS alert levels and official tsunami advisory status.",
   },
   {
-    q: "Can I filter earthquakes by country or region?",
-    a: "Yes. Use the country selector in the navigation bar to filter the live earthquake tracker by country. The map will automatically fly to and highlight recent seismic activity within that region.",
+    q: "How can I filter the live earthquake tracker by country?",
+    a: "Use the global dropdown menu in the navigation bar to filter the real-time earthquake map by country. The map automatically zooms to active fault lines and epicenters in that area.",
   },
   {
-    q: "Where does Quake Hub get its earthquake data from?",
-    a: "All earthquake data is sourced from the United States Geological Survey (USGS) real-time seismic feed, one of the most trusted global sources for earthquake monitoring and reporting.",
+    q: "Where does Quake Hub source its global earthquake data?",
+    a: "All seismic data on our real-time earthquake map is gathered directly from the United States Geological Survey (USGS) real-time feed.",
   },
 ];
 
@@ -192,9 +192,9 @@ export default function Home() {
       <div className="fixed top-0 left-0 right-0 z-[100] h-9 flex items-center bg-gradient-to-r from-[#7c0a00] via-[#c0170a] to-[#7c0a00] border-b border-red-500/40 overflow-hidden group/ticker">
         <div className="flex items-center gap-1.5 px-3 shrink-0 h-full bg-[#3d0500] border-r border-orange-500/30 z-10">
           <Zap size={12} className="text-orange-300 animate-pulse" />
-          <span className="text-orange-200 text-[10px] font-black tracking-widest">LIVE</span>
+          <span className="text-orange-200 text-[10px] font-black tracking-widest">LIVE USGS FEED</span>
         </div>
-        <div className="flex-1 overflow-hidden relative h-full flex items-center" aria-label="Latest earthquake headlines ticker">
+        <div className="flex-1 overflow-hidden relative h-full flex items-center" aria-label="Latest live earthquake headlines ticker">
           <div className="flex whitespace-nowrap animate-ticker text-[11px] font-medium text-red-100 tracking-wide group-hover/ticker:pause-anim">
             {latestNewsObjects.length > 0 ? (
               [...latestNewsObjects, ...latestNewsObjects].map((item, i) => (
@@ -207,7 +207,7 @@ export default function Home() {
                 </Link>
               ))
             ) : (
-              <span className="mx-8 opacity-60 text-xs">live seismic updates...</span>
+              <span className="mx-8 opacity-60 text-xs">live real-time earthquake map updating...</span>
             )}
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function Home() {
               <button
                 className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-[#ffcc88] min-w-[140px] sm:min-w-[180px] transition-colors"
                 onClick={() => setOpenCountry((v) => !v)}
-                aria-label="Filter earthquakes by country"
+                aria-label="Filter live earthquake map by country"
                 aria-expanded={openCountry}
               >
                 <div className="flex items-center gap-1.5 min-w-0">
@@ -253,7 +253,7 @@ export default function Home() {
                       placeholder="Search country..."
                       value={countrySearch}
                       onChange={(e) => setCountrySearch(e.target.value)}
-                      aria-label="Search countries to filter earthquake map"
+                      aria-label="Search countries on real-time earthquake map"
                     />
                   </div>
                   <div className="overflow-y-auto max-h-48 scrollbar-thin">
@@ -281,7 +281,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Dedicated Mobile Share Row: direct child of sticky nav so it stays fully visible */}
+        {/* Dedicated Mobile Share Row */}
         <div className="sm:hidden flex justify-center py-2.5 px-4 border-t border-orange-500/10 bg-[#060610]/80">
           <ShareButtons />
         </div>
@@ -307,18 +307,18 @@ export default function Home() {
           <div className="relative text-center pt-10 pb-8 sm:pt-14 sm:pb-10 px-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold mb-4 sm:mb-6 tracking-widest bg-red-500/10 border border-red-500/30 text-red-400">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
-              GLOBAL OBSERVATORY ACTIVE
+              USGS REAL-TIME DATA STREAM
             </div>
 
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight mb-3 bg-gradient-to-br from-orange-500 via-amber-400 to-red-600 bg-clip-text text-transparent leading-[1.1]">
-              QUAKE HUB
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight mb-3 bg-gradient-to-br from-orange-500 via-amber-400 to-red-600 bg-clip-text text-transparent leading-[1.1]">
+              Quake Hub – Live Earthquake Map &amp; Real-Time Seismic Tracker
             </h1>
-            <p className="text-orange-300/60 text-xs sm:text-sm tracking-widest font-medium px-4 max-w-md mx-auto sm:max-w-none">
-               Live Earthquake Map &amp; Real-Time Seismic Tracker
+            <p className="text-orange-300/70 text-xs sm:text-sm tracking-wide font-medium px-4 max-w-2xl mx-auto">
+              Monitor real-time USGS earthquake data globally on our live interactive seismic activity map.
             </p>
             {lastUpdated && (
               <p className="text-orange-600/50 text-[10px] mt-2 font-mono">
-                Telemetry Feed Synchronized: {lastUpdated.toLocaleTimeString()}
+                Live Earthquake Data Updated: {lastUpdated.toLocaleTimeString()}
               </p>
             )}
           </div>
@@ -327,14 +327,14 @@ export default function Home() {
         {/* Metric Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-6 pb-6 sm:pb-8 max-w-6xl mx-auto">
           {[
-            { label: "Seismic Disruptions", value: filtered.length || "-", icon: <Activity size={16} />, color: "bg-amber-500/5 border-amber-500/20", text: "text-amber-400" },
-            { label: "Severe Stress (M5+)", value: highRisk.length || "-", icon: <AlertTriangle size={16} />, color: "bg-orange-500/5 border-orange-500/20", text: "text-orange-400" },
-            { label: "Critical Anomalies (M6+)", value: major.length || "-", icon: <Zap size={16} />, color: "bg-red-500/5 border-red-500/20", text: "text-red-400" },
-            { label: "Tracking Matrix", value: "LIVE", icon: <Globe size={16} />, color: "bg-emerald-500/5 border-emerald-500/20", text: "text-emerald-400" },
+            { label: "Live Earthquakes Tracked", value: filtered.length || "-", icon: <Activity size={16} />, color: "bg-amber-500/5 border-amber-500/20", text: "text-amber-400" },
+            { label: "Severe Earthquakes (M5+)", value: highRisk.length || "-", icon: <AlertTriangle size={16} />, color: "bg-orange-500/5 border-orange-500/20", text: "text-orange-400" },
+            { label: "Critical Seismic Alerts (M6+)", value: major.length || "-", icon: <Zap size={16} />, color: "bg-red-500/5 border-red-500/20", text: "text-red-400" },
+            { label: "Real-Time Earthquake Tracker", value: "LIVE", icon: <Globe size={16} />, color: "bg-emerald-500/5 border-emerald-500/20", text: "text-emerald-400" },
           ].map((stat, i) => (
             <div key={i} className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 border ${stat.color}`}>
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase truncate m-0">{stat.label}</h3>
+                <h2 className="text-[10px] sm:text-xs text-orange-300/60 tracking-wider font-semibold uppercase truncate m-0">{stat.label}</h2>
                 <span className={`${stat.text} opacity-70 shrink-0`}>{stat.icon}</span>
               </div>
               <div className={`text-2xl sm:text-3xl font-black font-mono ${stat.text}`}>
@@ -355,10 +355,10 @@ export default function Home() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-black uppercase text-emerald-400 tracking-wider">
-                      Lithospheric Stable Condition
+                      No Active Earthquakes Detected
                     </div>
                     <div className="text-[11px] text-emerald-100/70 leading-relaxed mt-0.5">
-                      No active seismic anomalies discovered inside <span className="text-white font-semibold">{country}</span> during the current recording epoch.
+                      No seismic activity discovered in <span className="text-white font-semibold">{country}</span> on the live earthquake map during this tracking period.
                     </div>
                   </div>
                 </div>
@@ -368,10 +368,10 @@ export default function Home() {
             <div className="px-4 py-3 bg-orange-500/[0.04] border-b border-orange-500/15 flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-                <h2 className="text-[10px] text-orange-300/70 font-bold tracking-widest uppercase m-0">Live Earthquake Map — Geospatial Overlay</h2>
+                <h2 className="text-[10px] sm:text-xs text-orange-300/80 font-bold tracking-widest uppercase m-0">Live Earthquake Map — Global Real-Time USGS Data</h2>
                 {country !== "All" && (
                   <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/15 border border-orange-500/30 text-orange-400 tracking-wider uppercase">
-                     {country}
+                    {country}
                   </span>
                 )}
               </div>
@@ -395,9 +395,9 @@ export default function Home() {
         </div>
 
         {/* Recent Earthquakes Reports */}
-        <section className="px-4 sm:px-6 pb-8 max-w-6xl mx-auto">
-          <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4">
-            Recent Earthquake Reports
+        <section className="px-4 sm:px-6 pb-8 max-w-6xl mx-auto" aria-labelledby="recent-reports-title">
+          <h2 id="recent-reports-title" className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4">
+            Recent Earthquakes &amp; Real-Time USGS Alerts
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {earthquakes
@@ -422,38 +422,40 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SEO Text Core */}
-        <section className="px-4 sm:px-6 py-8 max-w-4xl mx-auto space-y-6 text-[#aaa8c0] text-xs sm:text-sm leading-relaxed border-t border-orange-500/10 mt-6">
+        {/* SEO Content Core */}
+        <section className="px-4 sm:px-6 py-8 max-w-4xl mx-auto space-y-6 text-[#aaa8c0] text-xs sm:text-sm leading-relaxed border-t border-orange-500/10 mt-6" aria-labelledby="seo-info-heading">
+          <h2 id="seo-info-heading" className="sr-only">About Quake Hub Real-Time Earthquake Map</h2>
+          
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">How to Track Earthquakes in Real-Time</h2>
+              <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">How to Track Earthquakes with a Live Earthquake Map</h2>
               <p>
-                Quake Hub syncs directly with the USGS real-time earthquake feed, tracking live seismic events across every continent. Use the live earthquake map to filter activity by country, view exact magnitude and depth, and follow breaking seismic alerts as they happen — all within a real-time earthquake tracker updated every 30 seconds.
+                Quake Hub synchronizes with official USGS real-time earthquake feeds to display global seismic events continuously. Use our live earthquake map to monitor earthquakes worldwide, track recent seismic activity by country, and inspect exact epicenter depths and magnitudes.
               </p>
             </div>
             <div>
-              <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Understanding Earthquake Magnitude Scales</h2>
+              <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Understanding Real-Time USGS Earthquake Data &amp; Magnitude</h2>
               <p>
-                Earthquakes registering below magnitude 4.0 are often micro-earthquakes that go unnoticed, while incidents exceeding magnitude 5.0 represent high-stress releases capable of localized damage. Critical global earthquake alerts are broadcast via our live ticker feed whenever a seismic anomaly clears magnitude 6.0.
+                Minor seismic events registered on our real-time earthquake tracker usually fall below magnitude 4.0. Earthquakes over magnitude 5.0 denote severe ground shaking, while critical real-time earthquake map alerts are broadcast when seismic events clear magnitude 6.0.
               </p>
             </div>
           </div>
 
           <div>
-            <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Why Monitor Global Seismic Activity?</h2>
+            <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Why Use Quake Hub's Real-Time Earthquake Tracker?</h2>
             <p>
-              Real-time earthquake monitoring helps communities, researchers, and travelers stay informed about tectonic activity near fault lines and subduction zones. Quake Hub's live earthquake tracker aggregates USGS data on magnitude, hypocenter depth, tsunami advisory status, and felt reports so you can quickly assess seismic risk in any country, from the Pacific Ring of Fire to the Mediterranean and beyond.
+              Monitoring live earthquake activity helps individuals, travelers, and emergency response teams remain aware of active fault line shifts. Quake Hub offers an interactive live earthquake map featuring verified USGS earthquake data, tsunami alerts, and historical seismic patterns across the globe.
             </p>
           </div>
 
-          {/* FAQ Accordion Block */}
-          <div>
-            <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3">Frequently Asked Questions About Earthquake Tracking</h2>
+          {/* FAQ Block with Structured Data */}
+          <div aria-labelledby="faq-section-title">
+            <h2 id="faq-section-title" className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3">Frequently Asked Questions About Our Live Earthquake Map</h2>
             <div className="space-y-4">
               {FAQ_ITEMS.map((item) => (
                 <div key={item.q}>
                   <h3 className="text-xs sm:text-sm font-bold text-white/90 mb-1">{item.q}</h3>
-                  <p className="text-[11px] sm:text-xs text-orange-100/50">{item.a}</p>
+                  <p className="text-[11px] sm:text-xs text-orange-100/60">{item.a}</p>
                 </div>
               ))}
             </div>

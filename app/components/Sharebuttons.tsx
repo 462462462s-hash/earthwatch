@@ -59,7 +59,7 @@ function LinkedInIcon() {
 
 // --- Config: fill in your real handles once and every share button on the site updates ---
 export const SOCIAL_LINKS = {
-  youtube: "https://www.youtube.com/@YourQuakeHubChannel",
+  youtube: "https://www.youtube.com/channel/UCbE5GKX2KHMJrlRk84L_Frg",
   linkedin: "https://www.linkedin.com/company/quake-hub",
   instagram: "https://www.instagram.com/quakehub",
 };
