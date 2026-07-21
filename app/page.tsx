@@ -213,82 +213,82 @@ export default function Home() {
         </div>
       </div>
 
-      <nav className="sticky top-9 z-50 flex justify-between items-center px-4 sm:px-6 py-3 bg-[#060610]/92 backdrop-blur-md border-b border-orange-500/15" aria-label="Main navigation">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-500/15 border border-orange-500/30">
-            <Activity size={16} className="text-orange-400" />
+      {/* Sticky Main Nav with integrated Mobile Share Bar */}
+      <nav className="sticky top-9 z-50 bg-[#060610]/95 backdrop-blur-md border-b border-orange-500/15" aria-label="Main navigation">
+        <div className="flex justify-between items-center px-4 sm:px-6 py-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-500/15 border border-orange-500/30">
+              <Activity size={16} className="text-orange-400" />
+            </div>
+            <div>
+              <div className="text-sm font-black text-orange-300 tracking-[0.15em]">QUAKE</div>
+              <div className="text-[10px] text-orange-500 tracking-[0.4em] font-medium -mt-0.5">HUB</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm font-black text-orange-300 tracking-[0.15em]">QUAKE</div>
-            <div className="text-[10px] text-orange-500 tracking-[0.4em] font-medium -mt-0.5">HUB</div>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Desktop Share buttons */}
+            <ShareButtons className="hidden sm:flex" />
+
+            <div className="relative shrink-0" ref={dropdownRef}>
+              <button
+                className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-[#ffcc88] min-w-[140px] sm:min-w-[180px] transition-colors"
+                onClick={() => setOpenCountry((v) => !v)}
+                aria-label="Filter earthquakes by country"
+                aria-expanded={openCountry}
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Globe size={14} className="shrink-0" />
+                  <span className="truncate">{country}</span>
+                </div>
+                <span className={`text-[10px] transition-transform duration-200 ${openCountry ? "rotate-180" : ""}`}>▼</span>
+              </button>
+
+              {openCountry && (
+                <div className="absolute right-0 mt-2 w-56 bg-[#0f0f22] border border-orange-500/25 rounded-xl shadow-2xl overflow-hidden z-[120]">
+                  <div className="p-2 border-b border-white/5">
+                    <input
+                      autoFocus
+                      className="w-full px-3 py-1.5 rounded-lg text-xs bg-white/5 outline-none text-white placeholder-orange-400/40"
+                      placeholder="Search country..."
+                      value={countrySearch}
+                      onChange={(e) => setCountrySearch(e.target.value)}
+                      aria-label="Search countries to filter earthquake map"
+                    />
+                  </div>
+                  <div className="overflow-y-auto max-h-48 scrollbar-thin">
+                    {filteredCountries.map((c) => (
+                      <div
+                        key={c}
+                        className={`px-4 py-2 text-xs sm:text-sm cursor-pointer flex items-center gap-2 transition-colors hover:bg-white/[0.02] ${c === country ? "text-orange-400 bg-orange-500/10" : "text-[#aaa8c0]"}`}
+                        onClick={() => {
+                          setCountry(c);
+                          setOpenCountry(false);
+                          setCountrySearch("");
+                        }}
+                      >
+                        {c === country && <Check size={12} className="text-orange-400 shrink-0" />}
+                        <span className="truncate">{c}</span>
+                      </div>
+                    ))}
+                    {filteredCountries.length === 0 && (
+                      <div className="px-4 py-3 text-xs text-orange-400/40 text-center">No results</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Share icons + country filter live together in the nav bar so they're
-            immediately visible without scrolling — the most "findable" spot on the page. */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <ShareButtons className="hidden sm:flex" />
-
-          <div className="relative shrink-0" ref={dropdownRef}>
-            <button
-              className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-[#ffcc88] min-w-[140px] sm:min-w-[180px] transition-colors"
-              onClick={() => setOpenCountry((v) => !v)}
-              aria-label="Filter earthquakes by country"
-              aria-expanded={openCountry}
-            >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Globe size={14} className="shrink-0" />
-                <span className="truncate">{country}</span>
-              </div>
-              <span className={`text-[10px] transition-transform duration-200 ${openCountry ? "rotate-180" : ""}`}>▼</span>
-            </button>
-
-            {openCountry && (
-              <div className="absolute right-0 mt-2 w-56 bg-[#0f0f22] border border-orange-500/25 rounded-xl shadow-2xl overflow-hidden z-[120]">
-                <div className="p-2 border-b border-white/5">
-                  <input
-                    autoFocus
-                    className="w-full px-3 py-1.5 rounded-lg text-xs bg-white/5 outline-none text-white placeholder-orange-400/40"
-                    placeholder="Search country..."
-                    value={countrySearch}
-                    onChange={(e) => setCountrySearch(e.target.value)}
-                    aria-label="Search countries to filter earthquake map"
-                  />
-                </div>
-                <div className="overflow-y-auto max-h-48 scrollbar-thin">
-                  {filteredCountries.map((c) => (
-                    <div
-                      key={c}
-                      className={`px-4 py-2 text-xs sm:text-sm cursor-pointer flex items-center gap-2 transition-colors hover:bg-white/[0.02] ${c === country ? "text-orange-400 bg-orange-500/10" : "text-[#aaa8c0]"}`}
-                      onClick={() => {
-                        setCountry(c);
-                        setOpenCountry(false);
-                        setCountrySearch("");
-                      }}
-                    >
-                      {c === country && <Check size={12} className="text-orange-400 shrink-0" />}
-                      <span className="truncate">{c}</span>
-                    </div>
-                  ))}
-                  {filteredCountries.length === 0 && (
-                    <div className="px-4 py-3 text-xs text-orange-400/40 text-center">No results</div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Dedicated Mobile Share Row: direct child of sticky nav so it stays fully visible */}
+        <div className="sm:hidden flex justify-center py-2.5 px-4 border-t border-orange-500/10 bg-[#060610]/80">
+          <ShareButtons />
         </div>
       </nav>
 
-      {/* Mobile-only share row: on small screens the nav bar hides the desktop
-          ShareButtons (above) to save space, so it re-appears full-width here
-          right under the header where it's still easy to find on a phone. */}
-      <div className="sm:hidden flex justify-center py-3 border-b border-orange-500/10">
-        <ShareButtons />
-      </div>
-
       <main id="main-content">
-        <div className="relative overflow-hidden pt-9">
+        <div className="relative overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
             {[300, 500, 700, 900].map((size) => (
               <div
@@ -461,9 +461,6 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer now uses the shared SiteFooter component: it renders the
-          follow/share icons again, plus your address, phone number, and
-          YouTube/LinkedIn links — replacing the old plain text footer. */}
       <SiteFooter />
 
       {/* Global CSS Injectors */}
