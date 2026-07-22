@@ -82,12 +82,17 @@ export default function ShareButtons({
 }: ShareButtonsProps) {
   const [shareUrl, setShareUrl] = useState(url);
   const [copied, setCopied] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     if (url) {
       setShareUrl(url);
     }
   }, [url]);
+
+  const canNativeShare =
+    isMounted && typeof navigator !== "undefined" && !!(navigator as any).share;
 
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
@@ -172,7 +177,7 @@ export default function ShareButtons({
         )}
       </button>
 
-      {typeof navigator !== "undefined" && (navigator as any).share && (
+      {canNativeShare && (
         <button
           type="button"
           onClick={handleNativeShare}
