@@ -1,14 +1,8 @@
 "use client";
+
 import Link from "next/link";
 import ShareButtons from "./Sharebuttons";
 
-/**
- * Server-renderable footer (no "use client" needed — nothing here is
- * interactive except the ShareButtons island, which carries its own directive).
- * Uses <address> + itemProp microdata so Google can parse your NAP
- * (Name / Address / Phone) consistently — this matters a lot for local SEO
- * and is a prerequisite most link-building / citation strategies rely on.
- */
 export default function SiteFooter() {
   return (
     <footer
@@ -45,17 +39,26 @@ export default function SiteFooter() {
         </a>
       </address>
 
-      <nav aria-label="Legal and site links" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[10px] sm:text-xs">
-        <Link href="/" className="text-orange-500/50 hover:text-orange-300 underline underline-offset-2">
+      <nav
+        aria-label="Legal and site links"
+        className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[10px] sm:text-xs"
+      >
+        <Link
+          href="/"
+          className="text-orange-500/50 hover:text-orange-300 underline underline-offset-2"
+        >
           Live Earthquake Map
         </Link>
-        <a href="/llms.txt" className="text-orange-500/50 hover:text-orange-300 underline underline-offset-2">
+        <a
+          href="/llms.txt"
+          className="text-orange-500/50 hover:text-orange-300 underline underline-offset-2"
+        >
           llms.txt
         </a>
       </nav>
 
       <p className="text-[9px] sm:text-xs text-orange-600/30">
-        QUAKE HUB OBSERVATORY MATRIX • DATA FEED: INTEGRATED USGS DATASTREAMS • POLL INTERVAL: 30s
+        QUAKE HUB — REAL-TIME EARTHQUAKE TRACKER • DATA FEED: USGS DATASTREAM • POLL INTERVAL: 30s
       </p>
     </footer>
   );

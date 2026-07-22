@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useRouter } from "next/navigation";
@@ -106,10 +106,11 @@ function getMagRadius(mag: number) {
   return 6;
 }
 
-export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: Props) {
+function EarthquakeMapImpl({ data, zoomSequence, selectedCountry }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
+  const markersByIdRef = useRef<Map<string, L.Marker>>(new Map());
   const zoomTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const router = useRouter();
 
@@ -137,26 +138,24 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
       .addAttribution('© <a href="https://carto.com">CARTO</a> | USGS')
       .addTo(map);
 
-    // Create a unified LayerGroup to manage markers collectively
     const markersGroup = L.layerGroup().addTo(map);
     markersGroupRef.current = markersGroup;
     mapInstanceRef.current = map;
 
-    // Fixed hidden dimension layout issues on load
     setTimeout(() => map.invalidateSize(), 100);
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
       markersGroupRef.current = null;
+      markersByIdRef.current.clear();
     };
   }, []);
 
-  // 2. Handle Dynamic Camera Sequence safely
+  // 2. Handle Camera Sequence safely
   useEffect(() => {
     const map = mapInstanceRef.current;
     
-    // Clean up older asynchronous cycle operations immediately on dependency shift
     zoomTimersRef.current.forEach(clearTimeout);
     zoomTimersRef.current = [];
 
@@ -173,7 +172,6 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
         map.flyTo(targetCoords, 5, { duration: 1.5 });
 
         const backOutTimer = setTimeout(() => {
-          // Verify component is still mounted and context exists before calling
           if (mapInstanceRef.current) {
             mapInstanceRef.current.flyTo([20, 0], 2, { duration: 1.5 });
           }
@@ -206,16 +204,27 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
     };
   }, [zoomSequence, selectedCountry]);
 
-  // 3. Handle markers rendering via Layer Groups
+  // 3. Diffed Marker Rendering
   useEffect(() => {
     const map = mapInstanceRef.current;
-    const markersGroup = markersGroupRef.current;
-    if (!map || !markersGroup) return;
+    const group = markersGroupRef.current;
+    if (!map || !group) return;
 
-    // Clear everything instantly inside the layer container instead of loop element drops
-    markersGroup.clearLayers();
+    const markersById = markersByIdRef.current;
+    const nextIds = new Set(data.map((eq) => eq.id));
 
+    // Remove markers that are no longer present
+    markersById.forEach((marker, id) => {
+      if (!nextIds.has(id)) {
+        group.removeLayer(marker);
+        markersById.delete(id);
+      }
+    });
+
+    // Add new markers
     data.forEach((eq) => {
+      if (markersById.has(eq.id)) return;
+
       const color = getMagColor(eq.magnitude);
       const radius = getMagRadius(eq.magnitude);
       const mins = Math.max(1, Math.floor((Date.now() - eq.time) / 60000));
@@ -223,15 +232,8 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
 
       const customHTML = `
         <div class="quake-node-group" style="width: ${radius * 2}px; height: ${radius * 2}px;">
-          <div class="quake-dot" style="
-            width: ${radius * 2}px; 
-            height: ${radius * 2}px; 
-            background: ${color}73; 
-            border: 1.5px solid ${color};
-          "></div>
-          
+          <div class="quake-dot" style="width: ${radius * 2}px; height: ${radius * 2}px; background: ${color}73; border: 1.5px solid ${color};"></div>
           <div class="hover-bridge" style="bottom: ${radius * 2 - 5}px;"></div>
-
           <div class="quake-hover-card" style="bottom: ${radius * 2 + 10}px;">
             <div style="color: ${color}; font-size: 18px; font-weight: 900; letter-spacing: -0.5px;">M${eq.magnitude.toFixed(1)}</div>
             <div style="color: rgba(255,255,255,0.8); font-size: 12px; margin: 4px 0 2px; line-height: 1.4;">${eq.place}</div>
@@ -250,77 +252,30 @@ export default function EarthquakeMap({ data, zoomSequence, selectedCountry }: P
         iconAnchor: [radius, radius],
       });
 
-      const interactionMarker = L.marker([eq.lat, eq.lon], { icon: markerIcon });
+      const marker = L.marker([eq.lat, eq.lon], { icon: markerIcon });
+      marker.on("click", () => router.push(`/earthquake/${encodeURIComponent(eq.id)}`));
 
-      interactionMarker.on("click", () => {
-        router.push(`/earthquake/${encodeURIComponent(eq.id)}`);
-      });
-
-      // Add directly into our controlled subset layer instance
-      markersGroup.addLayer(interactionMarker);
+      group.addLayer(marker);
+      markersById.set(eq.id, marker);
     });
   }, [data, router]);
 
   return (
     <>
-      <div
-        ref={mapRef}
-        style={{ width: "100%", height: "520px", background: "#060610", overflow: "hidden" }}
-      />
-      
+      <div ref={mapRef} style={{ width: "100%", height: "520px", background: "#060610", overflow: "hidden" }} />
       <style jsx global>{`
-        .leaflet-custom-marker-wrapper {
-          overflow: visible !important;
-          z-index: 500 !important;
-        }
-        .leaflet-custom-marker-wrapper:hover {
-          z-index: 99999 !important;
-        }
-        .quake-node-group {
-          position: relative;
-          cursor: pointer;
-        }
-        .quake-dot {
-          border-radius: 50%;
-          transition: background 0.2s ease, transform 0.2s ease;
-        }
-        .hover-bridge {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 190px;
-          height: 25px;
-          background: transparent;
-          display: none;
-          z-index: 10;
-        }
-        .quake-hover-card {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          background: #0f0f22;
-          border-radius: 10px;
-          padding: 10px 14px;
-          color: white;
-          font-family: system-ui, sans-serif;
-          min-width: 190px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.85);
-          display: none;
-          z-index: 200000 !important;
-          pointer-events: auto !important;
-        }
-        .quake-node-group:hover .quake-hover-card,
-        .quake-node-group:hover .hover-bridge {
-          display: block !important;
-        }
-        .quake-node-group:hover .quake-dot {
-          background-color: rgba(255, 255, 255, 0.25) !important; /* Fixed broken background-opacity fallback */
-          transform: scale(1.1);
-        }
-        .quake-node-group:hover .quake-hover-card {
-          border: 1px solid rgba(255, 110, 0, 0.35);
-        }
+        .leaflet-custom-marker-wrapper { overflow: visible !important; z-index: 500 !important; }
+        .leaflet-custom-marker-wrapper:hover { z-index: 99999 !important; }
+        .quake-node-group { position: relative; cursor: pointer; }
+        .quake-dot { border-radius: 50%; transition: background 0.2s ease, transform 0.2s ease; }
+        .hover-bridge { position: absolute; left: 50%; transform: translateX(-50%); width: 190px; height: 25px; background: transparent; display: none; z-index: 10; }
+        .quake-hover-card { position: absolute; left: 50%; transform: translateX(-50%); background: #0f0f22; border-radius: 10px; padding: 10px 14px; color: white; font-family: system-ui, sans-serif; min-width: 190px; box-shadow: 0 8px 32px rgba(0,0,0,0.85); display: none; z-index: 200000 !important; pointer-events: auto !important; }
+        .quake-node-group:hover .quake-hover-card, .quake-node-group:hover .hover-bridge { display: block !important; }
+        .quake-node-group:hover .quake-dot { background-color: rgba(255, 255, 255, 0.25) !important; transform: scale(1.1); }
+        .quake-node-group:hover .quake-hover-card { border: 1px solid rgba(255, 110, 0, 0.35); }
       `}</style>
     </>
   );
 }
+
+export default memo(EarthquakeMapImpl);

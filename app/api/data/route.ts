@@ -6,6 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept",
+  // Let Vercel's edge cache serve this for 25s and keep serving a slightly
+  // stale copy for another 55s while it refreshes in the background. Since
+  // you already poll every 30s, this means most users share one cached
+  // response instead of each device round-tripping to USGS individually —
+  // a big win for mobile latency and for not hammering the USGS feed.
+  "Cache-Control": "public, s-maxage=25, stale-while-revalidate=55",
 };
 
 export async function OPTIONS() {
@@ -14,25 +20,16 @@ export async function OPTIONS() {
 
 export async function GET() {
   try {
-    // ── STREAMLINED TARGET: Official 24-Hour Global Feed (Updates every minute) ──
     const USGS_ALL_DAY_FEED = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
-
     const response = await fetch(USGS_ALL_DAY_FEED, {
       method: "GET",
       cache: "no-store",
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "EarthquakeHubApp/1.0 (Seismic Analytics Application Platform)",
-      },
+      headers: { Accept: "application/json", "User-Agent": "EarthquakeHubApp/1.0 (Seismic Analytics Application Platform)" },
     });
-
-    if (!response.ok) {
-      throw new Error(`USGS Main Feed returned status code ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`USGS Main Feed returned status code ${response.status}`);
 
     const data = await response.json();
     const featureList = data?.features || [];
-
     const earthquakes = featureList.map((item: any) => {
       const coordinates = item?.geometry?.coordinates || [];
       return {
@@ -55,28 +52,16 @@ export async function GET() {
     });
 
     return NextResponse.json(
-      {
-        success: true,
-        count: earthquakes.length,
-        earthquakes,
-        lastUpdated: new Date().toISOString(),
-      },
+      { success: true, count: earthquakes.length, earthquakes, lastUpdated: new Date().toISOString() },
       { status: 200, headers: corsHeaders }
     );
   } catch (error: any) {
     console.error("Primary Earthquake API Error, switching to fallback:", error.message || error);
-
-    // Fallback: Using the 7-day all earthquake feed as a safety net
     try {
-      const fallback = await fetch(
-        "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson",
-        { cache: "no-store" }
-      );
+      const fallback = await fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson", { cache: "no-store" });
       const fallbackData = await fallback.json();
       const featureList = fallbackData?.features || [];
-
-      const now = Date.now();
-      const oneDayAgo = now - 24 * 60 * 60 * 1000;
+      const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
 
       const earthquakes = featureList
         .filter((item: any) => (item?.properties?.time ?? 0) >= oneDayAgo)
@@ -107,11 +92,7 @@ export async function GET() {
       );
     } catch (fallbackError: any) {
       return NextResponse.json(
-        {
-          success: false,
-          earthquakes: [],
-          message: `Unable to fetch live earthquake data. Details: ${error.message || "Unknown Network Exception"}`,
-        },
+        { success: false, earthquakes: [], message: `Unable to fetch live earthquake data. Details: ${error.message || "Unknown Network Exception"}` },
         { status: 500, headers: corsHeaders }
       );
     }

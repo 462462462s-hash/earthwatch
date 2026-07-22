@@ -65,9 +65,9 @@ export const SOCIAL_LINKS = {
 };
 
 type ShareButtonsProps = {
-  /** Optional explicit URL to share (defaults to the current page URL). */
+  /** Optional explicit URL to share (defaults to https://earthwatch-iihz-azure.vercel.app). */
   url?: string;
-  /** Optional custom share text (defaults to a generic Quake Hub message). */
+  /** Optional custom share text message. */
   title?: string;
   className?: string;
   /** Show the "follow us" icons (YouTube / LinkedIn) alongside the share icons. */
@@ -75,17 +75,17 @@ type ShareButtonsProps = {
 };
 
 export default function ShareButtons({
-  url,
-  title = "https://earthwatch-iihz-azure.vercel.app",
+  url = "https://earthwatch-iihz-azure.vercel.app",
+  title = "Check out Quake Hub — Real-Time Earthquake Tracker",
   className = "",
   showFollowLinks = false,
 }: ShareButtonsProps) {
-  const [shareUrl, setShareUrl] = useState(url || "");
+  const [shareUrl, setShareUrl] = useState(url);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!url && typeof window !== "undefined") {
-      setShareUrl(window.location.href);
+    if (url) {
+      setShareUrl(url);
     }
   }, [url]);
 
@@ -93,9 +93,6 @@ export default function ShareButtons({
   const encodedTitle = encodeURIComponent(title);
 
   const handleInstagramShare = useCallback(async () => {
-    // Instagram has no public "share this URL" web intent, so we copy the
-    // link and let the user paste it into a Story / DM / bio — the accepted
-    // workaround used by virtually every site with an Instagram share icon.
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -105,6 +102,7 @@ export default function ShareButtons({
       window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
     }
   }, [shareUrl]);
+
   const handleNativeShare = useCallback(async () => {
     if (typeof navigator !== "undefined" && (navigator as any).share) {
       try {
