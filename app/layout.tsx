@@ -5,13 +5,10 @@ import "./globals.css";
 const SITE_URL = "https://earthwatch-iihz-azure.vercel.app";
 const SITE_NAME = "Quake Hub";
 
-// SEO: expanded description with primary + secondary keywords, kept just under ~160 chars
+// Primary SEO Titles & Descriptions
+const SITE_TITLE = "Quake Hub – Live Earthquake Map & Real-Time Seismic Tracker";
 const SITE_DESCRIPTION =
-  "Quake Hub tracks live earthquakes worldwide with real-time USGS data. Monitor global seismic activity with interactive maps.";
-
-// SEO: lengthened, keyword-rich title
-const SITE_TITLE =
-  "Quake Hub – Live Earthquake Map & Global Real-Time Seismic Tracker";
+  "Monitor real-time USGS earthquake data globally on an interactive seismic activity map. Track tectonic shifts, fault lines, and critical alerts.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -34,6 +31,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Quake Hub" }],
   creator: "Quake Hub",
   publisher: "Quake Hub",
+  verification: {
+    google: "googlee957368efd2b5a38",
+  },
   formatDetection: { telephone: false },
   alternates: {
     canonical: "./",
@@ -48,8 +48,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
+    title: "Quake Hub – Live Earthquake Map & Seismic Tracker",
+    description: "Real-time global earthquake tracking driven by official USGS feeds.",
     url: SITE_URL,
     locale: "en_US",
     images: [
@@ -63,8 +63,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
+    title: "Quake Hub – Live Earthquake Map",
+    description: "Real-time global earthquake tracking driven by official USGS feeds.",
     images: ["/og-image.png"],
   },
   robots: {

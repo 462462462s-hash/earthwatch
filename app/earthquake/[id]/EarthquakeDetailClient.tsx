@@ -90,7 +90,6 @@ function EarthquakeDetailMain() {
   useEffect(() => {
     const rawId = params?.id || searchParams.get("id");
     const id = typeof rawId === "string" ? rawId : Array.isArray(rawId) ? rawId[0] : "";
-
     if (!id) {
       setLoading(false);
       return;
@@ -171,9 +170,18 @@ function EarthquakeDetailMain() {
     fetchDetail();
   }, [params, searchParams]);
 
-  const eventJsonLd = useMemo(() => {
+  // SEO: Dynamic Document Title
+  useEffect(() => {
+    if (eq) {
+      document.title = `M${eq.magnitude.toFixed(1)} Earthquake — ${eq.place} | Quake Hub Real-Time Reports`;
+    }
+  }, [eq]);
+
+  // SEO: Dynamic Schema.org JSON-LD Structured Data
+  const jsonLdData = useMemo(() => {
     if (!eq) return null;
-    return {
+
+    const eventSchema = {
       "@context": "https://schema.org",
       "@type": "Event",
       name: `M${eq.magnitude.toFixed(1)} Earthquake — ${eq.place}`,
@@ -183,17 +191,56 @@ function EarthquakeDetailMain() {
       location: {
         "@type": "Place",
         name: eq.place,
-        geo: { "@type": "GeoCoordinates", latitude: eq.lat, longitude: eq.lon },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: eq.lat,
+          longitude: eq.lon,
+        },
       },
-      description: `Magnitude ${eq.magnitude.toFixed(1)} earthquake recorded near ${eq.city || eq.place}${eq.country ? `, ${eq.country}` : ""} at a depth of ${eq.depth.toFixed(1)} km.`,
+      hasMap: `https://openstreetmap.org/?mlat=${eq.lat}&mlon=${eq.lon}#map=8/${eq.lat}/${eq.lon}`,
+      description: `Magnitude ${eq.magnitude.toFixed(1)} earthquake registered near ${eq.city || eq.place}${eq.country ? `, ${eq.country}` : ""} at a depth of ${eq.depth.toFixed(1)} km. Real-time seismic report and news updates.`,
+      publisher: {
+        "@type": "Organization",
+        name: "Quake Hub",
+        url: "https://quakehub.com",
+      }
     };
+
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://quakehub.com"
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Earthquakes",
+          item: "https://quakehub.com/earthquakes"
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: `M${eq.magnitude.toFixed(1)} - ${eq.place}`,
+          item: `https://quakehub.com/earthquake/${eq.id}`
+        }
+      ]
+    };
+
+    return [eventSchema, breadcrumbSchema];
   }, [eq]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#060610] text-white flex flex-col items-center justify-center gap-4 px-4">
         <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-orange-400/60 text-xs tracking-widest uppercase text-center animate-pulse">Loading earthquake report...</p>
+        <p className="text-orange-400/60 text-xs tracking-widest uppercase text-center animate-pulse">
+          Loading live seismic report...
+        </p>
       </div>
     );
   }
@@ -202,8 +249,12 @@ function EarthquakeDetailMain() {
     return (
       <div className="min-h-screen bg-[#060610] text-white flex flex-col items-center justify-center gap-4 px-4 text-center">
         <ShieldAlert className="text-red-500 w-12 h-12" />
-        <p className="text-red-400 font-bold text-sm sm:text-base">EVENT CORRUPTION: SEISMIC ID NOT FOUND</p>
-        <Link href="/" className="text-xs text-orange-400 underline tracking-widest uppercase">Return to the Live Earthquake Map</Link>
+        <h1 className="text-red-400 font-bold text-sm sm:text-base uppercase tracking-wider">
+          EVENT CORRUPTION: SEISMIC ID NOT FOUND
+        </h1>
+        <Link href="/" className="text-xs text-orange-400 underline tracking-widest uppercase">
+          Return to the Live Earthquake Map
+        </Link>
       </div>
     );
   }
@@ -215,29 +266,35 @@ function EarthquakeDetailMain() {
 
   const locationLabel = eq.country ? `${eq.region}, ${eq.country}` : eq.place;
   const shareTitle = `M${eq.magnitude.toFixed(1)} Earthquake — ${eq.place} | Quake Hub`;
+
   const listRecords = [
-    <>An earthquake event discovered with identification tracking parameter signature <span className="text-orange-400 font-bold font-mono bg-orange-500/10 px-1 rounded">{eq.id}</span>.</>,
-    <>A magnitude recording of <span className="text-orange-400 font-black font-mono">M{eq.magnitude.toFixed(1)}</span> registered at the <span className="text-orange-400 font-bold">{locationLabel}</span> sector matrix.</>,
-    <>Telemetry instruments timestamp the primary event shockwaves at precisely <span className="text-orange-400 font-bold font-mono">{eq.time ? new Date(eq.time).toUTCString() : "an unconfirmed window"}</span>.</>,
-    <>Epicenter coordinates calculated precisely at latitude coordinates of <span className="text-orange-400 font-bold font-mono">{eq.lat.toFixed(4)}°</span> and longitude configurations of <span className="text-orange-400 font-bold font-mono">{eq.lon.toFixed(4)}°</span>.</>,
-    <>Hypocenter positioning marks initial crust rupture penetration at a depth metric of <span className="text-orange-400 font-bold font-mono">{eq.depth.toFixed(1)} km</span> beneath target base.</>,
-    <>Regional localized zone data routes the core impact terminal boundaries close to <span className="text-orange-400 font-bold">{eq.city || "unmapped coordinates"}</span>.</>,
-    <>Community analytics log a total frequency of <span className="text-orange-400 font-bold font-mono">{eq.felt?.toLocaleString() ?? "0"}</span> independent reports indicating felt seismic activity.</>,
-    <>The United States Geological Survey impact system measures an evaluation significance scoring index of <span className="text-orange-400 font-bold font-mono">{eq.significance ?? "0"}</span>.</>,
-    <>Seismic data evaluation models indicate <span className={eq.tsunami === 1 ? "text-red-400 font-bold animate-pulse" : "text-orange-400 font-bold"}>{eq.tsunami === 1 ? "an active and immediate structural threat parameters for tsunami displacement" : "zero active tsunami threat risks discovered during live tracking sequence"}</span>.</>,
-    <>The global alert status framework has broadcasted a telemetry designation ranking of <span className="text-orange-400 font-bold">{alertStyle ? alertStyle.label : "none / unclassified metrics"}</span>.</>
+    <>Earthquake event tracking identification signature: <span className="text-orange-400 font-bold font-mono bg-orange-500/10 px-1 rounded">{eq.id}</span>.</>,
+    <>Seismic magnitude rating: <span className="text-orange-400 font-black font-mono">M{eq.magnitude.toFixed(1)}</span> registered at <span className="text-orange-400 font-bold">{locationLabel}</span>.</>,
+    <>Detection timestamp: <span className="text-orange-400 font-bold font-mono">{eq.time ? new Date(eq.time).toUTCString() : "unconfirmed window"}</span>.</>,
+    <>Epicenter geographic coordinates: Latitude <span className="text-orange-400 font-bold font-mono">{eq.lat.toFixed(4)}°</span>, Longitude <span className="text-orange-400 font-bold font-mono">{eq.lon.toFixed(4)}°</span>.</>,
+    <>Hypocenter depth (crust rupture): <span className="text-orange-400 font-bold font-mono">{eq.depth.toFixed(1)} km</span> beneath surface target.</>,
+    <>Localized impact area: <span className="text-orange-400 font-bold">{eq.city || "unmapped coordinates"}</span>.</>,
+    <>Community felt reports: <span className="text-orange-400 font-bold font-mono">{eq.felt?.toLocaleString() ?? "0"}</span> submissions.</>,
+    <>USGS impact significance score: <span className="text-orange-400 font-bold font-mono">{eq.significance ?? "0"}</span>.</>,
+    <>Tsunami hazard evaluation: <span className={eq.tsunami === 1 ? "text-red-400 font-bold animate-pulse" : "text-orange-400 font-bold"}>{eq.tsunami === 1 ? "Active tsunami threat advisory" : "No active tsunami hazard discovered"}</span>.</>,
+    <>PAGER alert status: <span className="text-orange-400 font-bold">{alertStyle ? alertStyle.label : "None / Unclassified"}</span>.</>
   ];
 
   return (
     <main className="min-h-screen text-white pb-16 antialiased bg-[#060610]">
-      {eventJsonLd && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }} />
+      {jsonLdData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
+        />
       )}
 
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 h-14 bg-[#060610]/80 backdrop-blur-md border-b border-orange-500/15">
+      {/* Accessible Navigation Header */}
+      <nav aria-label="Breadcrumbs" className="sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 h-14 bg-[#060610]/80 backdrop-blur-md border-b border-orange-500/15">
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-xs font-bold text-orange-400/80 hover:text-orange-300 transition-colors uppercase tracking-wider"
+          aria-label="Go back to live earthquake map"
         >
           <ArrowLeft size={14} /> Back <span className="hidden xs:inline">to Live Earthquake Map</span>
         </button>
@@ -246,6 +303,7 @@ function EarthquakeDetailMain() {
 
       <article className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 space-y-4 sm:space-y-6" itemScope itemType="https://schema.org/Event">
 
+        {/* Hero Header Section */}
         <header className="border border-orange-500/20 rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-white/[0.02] to-transparent">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
             <div className="min-w-0 flex-1">
@@ -289,9 +347,13 @@ function EarthquakeDetailMain() {
           </div>
         </header>
 
-        <section aria-labelledby="epicenter-heading">
-          <h2 id="epicenter-heading" className="sr-only">Epicenter, Coordinates, and Depth Data for This Earthquake</h2>
+        {/* Epicenter & Geographical Data */}
+        <section aria-labelledby="seismic-metrics-heading">
+          <h2 id="seismic-metrics-heading" className="text-xs text-orange-300/80 font-bold tracking-widest uppercase mb-3">
+            Epicenter & Seismic Telemetry Metrics
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4" itemProp="location" itemScope itemType="https://schema.org/Place">
+            
             <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-[10px] sm:text-xs text-orange-300/40 tracking-widest font-medium uppercase m-0">Epicenter Region</h3>
@@ -338,7 +400,8 @@ function EarthquakeDetailMain() {
           </div>
         </section>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        {/* Shaking Stats */}
+        <section aria-label="Community impact and alert status" className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <div className="border border-white/5 bg-white/[0.01] rounded-2xl p-3 sm:p-4">
             <h3 className="text-[9px] sm:text-[10px] text-orange-400/40 tracking-widest uppercase mb-1 truncate m-0">Felt Reports</h3>
             <div className="text-lg sm:text-xl font-black font-mono text-white">{eq.felt?.toLocaleString() ?? "0"}</div>
@@ -356,28 +419,33 @@ function EarthquakeDetailMain() {
             </div>
             <div className="text-[9px] sm:text-[10px] text-orange-400/30 mt-0.5 line-clamp-1">advisory status</div>
           </div>
-        </div>
+        </section>
 
+        {/* Natural Language Event Summary (SEO Optimized Copy) */}
         <section className="border border-orange-500/10 rounded-2xl p-4 sm:p-5 bg-white/[0.01]">
-          <h2 className="text-xs text-orange-300/80 font-bold tracking-widest uppercase mb-2">Earthquake Summary for {eq.place}</h2>
-          <p itemProp="description" className="text-[11px] sm:text-xs text-orange-100/50 leading-relaxed">
-            This magnitude {eq.magnitude.toFixed(1)} earthquake was recorded near {eq.city || eq.place}
-            {eq.country ? `, ${eq.country}` : ""} at a hypocenter depth of {eq.depth.toFixed(1)} km.
+          <h2 className="text-xs text-orange-300/80 font-bold tracking-widest uppercase mb-2">
+            Earthquake Overview: M{eq.magnitude.toFixed(1)} near {eq.place}
+          </h2>
+          <p itemProp="description" className="text-[11px] sm:text-xs text-orange-100/60 leading-relaxed">
+            A magnitude {eq.magnitude.toFixed(1)} earthquake was officially recorded near {eq.city || eq.place}
+            {eq.country ? `, ${eq.country}` : ""} at a depth of {eq.depth.toFixed(1)} km.
             {eq.tsunami === 1
-              ? " USGS has flagged an active tsunami advisory for this event — check official coastal warning channels for evacuation guidance."
-              : " No active tsunami advisory has been issued for this event."}{" "}
+              ? " The USGS and tsunami warning centers have flagged an active advisory for coastal sectors. Check local emergency services for official evacuation directions."
+              : " No active tsunami warnings have been triggered by this event."}{" "}
             {eq.felt && eq.felt > 0
-              ? `So far, ${eq.felt.toLocaleString()} people have reported feeling this earthquake.`
-              : "No felt reports have been submitted for this event yet."} Track this and other live seismic activity on the Quake Hub real-time earthquake map.
+              ? `To date, over ${eq.felt.toLocaleString()} independent felt reports have been logged by citizens in surrounding regions.`
+              : "No community felt reports have been submitted for this tremor yet."} Access live seismic monitoring tools and real-time earthquake feeds on the Quake Hub platform.
           </p>
         </section>
 
-        <section className="border border-orange-500/15 rounded-2xl overflow-hidden">
+        {/* News & Map Feed Section */}
+        <section className="border border-orange-500/15 rounded-2xl overflow-hidden" aria-labelledby="news-feed-heading">
           <div className="px-4 py-3 sm:px-5 sm:py-4 bg-orange-500/[0.04] border-b border-orange-500/10 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <Newspaper size={14} className="text-orange-400/60 shrink-0" />
-              <h2 className="text-xs text-orange-300/80 font-bold tracking-widest uppercase truncate m-0">Live Earthquake News for {searchLabel || eq.place}</h2>
-              <span className="text-[10px] text-orange-400/30 font-mono hidden md:inline truncate">[{searchLabel}]</span>
+              <h2 id="news-feed-heading" className="text-xs text-orange-300/80 font-bold tracking-widest uppercase truncate m-0">
+                Live Earthquake News & Reports for {searchLabel || eq.place}
+              </h2>
             </div>
             <span className="text-[10px] text-orange-400/40 font-mono shrink-0">{news.length} articles</span>
           </div>
@@ -385,23 +453,26 @@ function EarthquakeDetailMain() {
           {newsLoading ? (
             <div className="flex flex-col items-center justify-center gap-3 py-16 px-4">
               <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-orange-400/50 text-xs tracking-widest uppercase text-center">Scanning Global Sources...</p>
+              <p className="text-orange-400/50 text-xs tracking-widest uppercase text-center">
+                Scanning Global Seismic News Sources...
+              </p>
             </div>
           ) : news.length === 0 ? (
             <div className="p-4 sm:p-5">
               <p className="text-orange-400/40 text-[10px] sm:text-xs tracking-widest uppercase mb-3 text-center">
-                No syndicated articles found for <span className="text-orange-400/60">{searchLabel}</span> — showing the official event record instead
+                No syndicated news articles found for <span className="text-orange-400/60">{searchLabel}</span> — showing official USGS map record:
               </p>
               <a
                 href={buildFallbackRecordUrl(eq)}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={`View full USGS earthquake event record for magnitude ${eq.magnitude.toFixed(1)} near ${eq.place}`}
                 className="group block relative rounded-xl overflow-hidden border-2 border-orange-500/30 hover:border-orange-500/70 transition-all duration-300 bg-[#0a0a14] cursor-pointer shadow-lg shadow-orange-500/0 hover:shadow-orange-500/20"
               >
                 <div className="flex items-center justify-center gap-2 px-3 py-2 bg-orange-500/15 border-b border-orange-500/30">
                   <MapPin size={13} className="text-orange-400 shrink-0" />
                   <span className="text-[10px] sm:text-xs font-bold text-orange-300 tracking-wide">
-                    Tap the map to open the full earthquake report
+                    Tap to open official earthquake bulletin & fault maps
                   </span>
                   <ExternalLink size={11} className="text-orange-400 shrink-0" />
                 </div>
@@ -410,7 +481,7 @@ function EarthquakeDetailMain() {
                     src={buildOsmEmbedUrl(eq.lat, eq.lon)}
                     className="w-full h-full border-0 pointer-events-none transition-transform duration-300 group-hover:scale-[1.03]"
                     loading="lazy"
-                    title={`Interactive map view showing epicenter location near ${eq.place} at latitude ${eq.lat.toFixed(2)} and longitude ${eq.lon.toFixed(2)}`}
+                    title={`Interactive geographic map centered on epicenter near ${eq.place} at coordinates ${eq.lat.toFixed(2)}, ${eq.lon.toFixed(2)}`}
                   />
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500 text-[#0a0a14] text-[9px] sm:text-[10px] font-bold tracking-wide shadow-lg animate-pulse">
                     <ExternalLink size={10} />
@@ -423,7 +494,7 @@ function EarthquakeDetailMain() {
                       <span className="truncate">{eq.place}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-[#0a0a14] bg-orange-400 group-hover:bg-orange-300 transition-colors px-2.5 py-1.5 rounded-lg shrink-0">
-                      View Report <ExternalLink size={11} />
+                      View Event Page <ExternalLink size={11} />
                     </div>
                   </div>
                 </div>
@@ -439,12 +510,13 @@ function EarthquakeDetailMain() {
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Read report: ${article.title}`}
                       className={`group relative rounded-xl overflow-hidden border border-white/5 hover:border-orange-500/40 transition-all duration-300 bg-[#0a0a14] flex flex-col ${i === 0 ? "sm:col-span-2 lg:col-span-2" : ""}`}
                     >
                       <div className="relative overflow-hidden w-full h-36 sm:h-40 md:h-44">
                         <img
                           src={article.imageUrl!}
-                          alt={`${article.title} - report from ${article.source} on magnitude ${eq.magnitude.toFixed(1)} earthquake near ${eq.place}`}
+                          alt={`${article.title} - ${article.source} coverage on earthquake M${eq.magnitude.toFixed(1)} near ${eq.place}`}
                           className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                           loading="lazy"
                           decoding="async"
@@ -486,6 +558,7 @@ function EarthquakeDetailMain() {
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Read coverage from ${article.source}: ${article.title}`}
                       className="group flex items-start gap-3 p-3 sm:p-4 rounded-xl border border-white/5 hover:border-orange-500/30 bg-white/[0.01] hover:bg-white/[0.03] transition-all duration-200"
                     >
                       <div className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
@@ -509,10 +582,13 @@ function EarthquakeDetailMain() {
           )}
         </section>
 
-        <section className="border border-orange-500/15 rounded-2xl overflow-hidden bg-white/[0.01]">
+        {/* Complete Event Technical Log */}
+        <section className="border border-orange-500/15 rounded-2xl overflow-hidden bg-white/[0.01]" aria-labelledby="event-log-heading">
           <div className="px-4 py-3 sm:px-5 sm:py-4 bg-orange-500/[0.04] border-b border-orange-500/10 flex items-center gap-2">
             <ListTree size={14} className="text-orange-400/60 shrink-0" />
-            <h2 className="text-xs text-orange-300/80 font-bold tracking-widest uppercase m-0">Full Event Record Logs</h2>
+            <h2 id="event-log-heading" className="text-xs text-orange-300/80 font-bold tracking-widest uppercase m-0">
+              Technical Seismic Record Logs & Data Parameters
+            </h2>
           </div>
           <div className="p-5 sm:p-6">
             <ul className="list-disc list-inside space-y-3.5 text-xs sm:text-sm text-white/70 font-medium tracking-wide">
