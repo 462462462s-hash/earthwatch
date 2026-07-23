@@ -6,11 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept",
-  // Let Vercel's edge cache serve this for 25s and keep serving a slightly
-  // stale copy for another 55s while it refreshes in the background. Since
-  // you already poll every 30s, this means most users share one cached
-  // response instead of each device round-tripping to USGS individually —
-  // a big win for mobile latency and for not hammering the USGS feed.
   "Cache-Control": "public, s-maxage=25, stale-while-revalidate=55",
 };
 

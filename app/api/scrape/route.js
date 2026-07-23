@@ -100,7 +100,7 @@ async function scrapeGDELT(query, eventTimeMs) {
     try { data = JSON.parse(text); } catch { return results; }
     for (const item of (data?.articles || [])) {
       const published = parseGdeltDate(item.seendate);
-      const art = buildArticle(item.title, item.url, item.socialimage, item.domain || 'News', published);
+      const art = buildArticle(item.title, item.url,item.socialimage, item.domain || 'News', published);
       if (art) results.push(art);
     }
   } catch (e) {

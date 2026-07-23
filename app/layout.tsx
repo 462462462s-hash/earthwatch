@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: SITE_TITLE, template: "%s | Quake Hub – Live Earthquake Tracker" },
+  title: { default: SITE_TITLE, template: "%s | Quake Hub – Live Quake Tracker" },
   description: SITE_DESCRIPTION,
   keywords: SITE_KEYWORDS,
   applicationName: SITE_NAME,
@@ -60,7 +60,7 @@ function StructuredData() {
     "@type": "Organization",
     name: SITE_NAME,
     url: SITE_URL,
-    description: "Quake Hub is a live earthquake tracking platform providing real-time global seismic data sourced from the USGS.",
+    description: "Quake Hub is a live earthquake tracking platform providing real-time global seismic data.",
     areaServed: "Worldwide",
   };
   return (
@@ -86,7 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
 
-        <meta name="geo.placename" content="Worldwide" />
+        <meta name="geo.placename" content="Worldwide"/>
         <meta name="geo.region" content="00" />
         <meta name="ICBM" content="0, 0" />
         <StructuredData />

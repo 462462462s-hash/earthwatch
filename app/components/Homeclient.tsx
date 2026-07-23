@@ -15,7 +15,7 @@ const EarthquakeMap = dynamic(() => import("./EarthquakeMap"), {
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
         <span className="text-orange-400/60 text-xs sm:text-sm tracking-widest uppercase px-4 text-center">
-          Loading live earthquake map...
+          Loading live global earthquake map...
         </span>
       </div>
     </div>
@@ -65,7 +65,19 @@ const ALL_COUNTRIES = [
 ];
 
 /* ---------------------------------------------------------------------------
- * Memoized subcomponents.
+ * Helper Utilities for SEO Slugs
+ * ------------------------------------------------------------------------- */
+function createSeoSlug(eq: Earthquake): string {
+  const placeSlug = eq.place
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+  return `m${eq.magnitude.toFixed(1)}-earthquake-${placeSlug}-${eq.id}`;
+}
+
+/* ---------------------------------------------------------------------------
+ * Memoized subcomponents
  * ------------------------------------------------------------------------- */
 
 const MetricGrid = memo(function MetricGrid({
@@ -92,7 +104,7 @@ const MetricGrid = memo(function MetricGrid({
   );
 });
 
-const Ticker = memo(function Ticker({ items }: { items: { id: string; text: string }[] }) {
+const Ticker = memo(function Ticker({ items }: { items: { id: string; text: string; slug: string; place: string; mag: string }[] }) {
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] h-9 flex items-center bg-gradient-to-r from-[#7c0a00] via-[#c0170a] to-[#7c0a00] border-b border-red-500/40 overflow-hidden group">
       <div className="flex items-center gap-1.5 px-3 shrink-0 h-full bg-[#3d0500] border-r border-orange-500/30 z-10">
@@ -105,7 +117,8 @@ const Ticker = memo(function Ticker({ items }: { items: { id: string; text: stri
             [...items, ...items].map((item, i) => (
               <Link
                 key={`${item.id}-${i}`}
-                href={`/earthquake/${item.id}`}
+                href={`/earthquake/${item.slug}`}
+                title={`Magnitude ${item.mag} earthquake reported in ${item.place}`}
                 className="mx-8 sm:mx-12 flex items-center gap-1.5 hover:text-orange-300 transition-colors cursor-pointer select-none"
               >
                 <span>⚡</span> {item.text}
@@ -128,23 +141,27 @@ const RecentReports = memo(function RecentReports({ earthquakes }: { earthquakes
   return (
     <section className="px-4 sm:px-6 pb-8 max-w-6xl mx-auto" aria-labelledby="recent-reports-heading">
       <h2 id="recent-reports-heading" className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-4">
-        Recent Earthquakes &amp; Real-Time USGS Alerts
+        Recent Earthquakes Today &amp; Real-Time USGS Alerts
       </h2>
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 list-none">
-        {recent.map((eq) => (
-          <li key={eq.id}>
-            <Link
-              href={`/earthquake/${encodeURIComponent(eq.id)}`}
-              className="flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 bg-white/[0.01] transition-colors text-xs"
-            >
-              <span className="text-orange-300 font-bold font-mono">M{eq.magnitude.toFixed(1)}</span>
-              <span className="text-white/70 truncate flex-1 mx-2">{eq.place}</span>
-              <time dateTime={new Date(eq.time).toISOString()} className="text-orange-400/40 shrink-0">
-                {new Date(eq.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </time>
-            </Link>
-          </li>
-        ))}
+        {recent.map((eq) => {
+          const slug = createSeoSlug(eq);
+          return (
+            <li key={eq.id}>
+              <Link
+                href={`/earthquake/${slug}`}
+                title={`Detailed seismic analysis for Magnitude ${eq.magnitude.toFixed(1)} quake in ${eq.place}`}
+                className="flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 bg-white/[0.01] transition-colors text-xs"
+              >
+                <span className="text-orange-300 font-bold font-mono">M{eq.magnitude.toFixed(1)}</span>
+                <span className="text-white/70 truncate flex-1 mx-2">{eq.place}</span>
+                <time dateTime={new Date(eq.time).toISOString()} className="text-orange-400/40 shrink-0">
+                  {new Date(eq.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </time>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
@@ -171,7 +188,7 @@ const Hero = memo(function Hero() {
           Quake Hub – Live Earthquake Map &amp; Real-Time Seismic Tracker
         </h1>
         <p className="text-orange-300/70 text-xs sm:text-sm tracking-wide font-medium px-4 max-w-2xl mx-auto">
-          Monitor verified USGS seismic activity globally on an interactive, real-time earthquake tracker.
+          Monitor verified USGS seismic activity globally on an interactive, real-time earthquake tracker. View tremors, epicenter depths, and fault line alerts instantly.
         </p>
       </div>
     </div>
@@ -205,15 +222,15 @@ const NavBar = memo(function NavBar({
   return (
     <nav className="sticky top-9 z-50 bg-[#060610]/95 backdrop-blur-md border-b border-orange-500/15" aria-label="Main navigation">
       <div className="flex justify-between items-center px-4 sm:px-6 py-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-500/15 border border-orange-500/30">
+        <Link href="/" className="flex items-center gap-3 group" title="Quake Hub Home Page">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-500/15 border border-orange-500/30 group-hover:border-orange-500/60 transition-colors">
             <Activity size={16} className="text-orange-400" />
           </div>
           <div>
             <div className="text-sm font-black text-orange-300 tracking-[0.15em]">QUAKE</div>
             <div className="text-[10px] text-orange-500 tracking-[0.4em] font-medium -mt-0.5">HUB</div>
           </div>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <ShareButtons className="hidden sm:flex" />
@@ -246,14 +263,15 @@ const NavBar = memo(function NavBar({
                 </div>
                 <div className="overflow-y-auto max-h-48 scrollbar-thin">
                   {filteredCountries.map((c) => (
-                    <div
+                    <button
                       key={c}
-                      className={`px-4 py-2 text-xs sm:text-sm cursor-pointer flex items-center gap-2 transition-colors hover:bg-white/[0.02] ${c === country ? "text-orange-400 bg-orange-500/10" : "text-[#aaa8c0]"}`}
+                      type="button"
+                      className={`w-full text-left px-4 py-2 text-xs sm:text-sm cursor-pointer flex items-center gap-2 transition-colors hover:bg-white/[0.02] ${c === country ? "text-orange-400 bg-orange-500/10" : "text-[#aaa8c0]"}`}
                       onClick={() => onSelectCountry(c)}
                     >
                       {c === country && <Check size={12} className="text-orange-400 shrink-0" />}
                       <span className="truncate">{c}</span>
-                    </div>
+                    </button>
                   ))}
                   {filteredCountries.length === 0 && (
                     <div className="px-4 py-3 text-xs text-orange-400/40 text-center">No results</div>
@@ -362,7 +380,15 @@ export default function HomeClient() {
       .map((q) => {
         const mins = Math.max(1, Math.floor((Date.now() - q.time) / 60000));
         const timeStr = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
-        return { id: q.id, text: `M${q.magnitude.toFixed(1)} — ${q.place} — ${timeStr}` };
+        const slug = createSeoSlug(q);
+        const mag = q.magnitude.toFixed(1);
+        return {
+          id: q.id,
+          text: `M${mag} — ${q.place} — ${timeStr}`,
+          slug,
+          place: q.place,
+          mag,
+        };
       });
   }, [earthquakes]);
 
@@ -431,15 +457,20 @@ export default function HomeClient() {
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] font-mono text-orange-400/50">
                 {[
-                  { label: "M7+", color: "bg-[#ff2200]" },
-                  { label: "M5+", color: "bg-[#ffaa00]" },
-                  { label: "M4+", color: "bg-[#ffdd00]" },
-                  { label: "M4", color: "bg-[#88cc44]" },
+                  { label: "M7+", color: "bg-[#ff2200]", href: "/earthquakes/magnitude-7-plus" },
+                  { label: "M5+", color: "bg-[#ffaa00]", href: "/earthquakes/magnitude-5-plus" },
+                  { label: "M4+", color: "bg-[#ffdd00]", href: "/earthquakes/magnitude-4-plus" },
+                  { label: "M4", color: "bg-[#88cc44]", href: "/earthquakes/minor" },
                 ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-1.5">
+                  <Link 
+                    key={item.label} 
+                    href={item.href}
+                    className="flex items-center gap-1.5 hover:text-orange-300 transition-colors"
+                    title={`View all ${item.label} earthquakes`}
+                  >
                     <div className={`w-2 h-2 rounded-full ${item.color}`} />
                     <span>{item.label}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

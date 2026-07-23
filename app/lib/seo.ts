@@ -6,7 +6,7 @@ export const SITE_NAME = "Quake Hub";
 // structured data instead of three slightly different phrasings.
 export const SITE_TITLE = "Quake Hub – Live Earthquake Map & Real-Time Earthquake Tracker";
 export const SITE_DESCRIPTION =
-  "Track live earthquakes worldwide with Quake Hub's real-time earthquake tracker. View magnitude, epicenter depth, coordinates, and tsunami advisory status sourced directly from the USGS earthquake feed, updated every 30 seconds.";
+  "Track live earthquakes worldwide with Quake Hub's real-time earthquake tracker. View magnitude, epicenter depth, and tsunami advisory status sourced directly from the USGS earthquake feed, updated every 30 seconds.";
 
 export const SITE_KEYWORDS = [
   "live earthquake map",
@@ -17,6 +17,18 @@ export const SITE_KEYWORDS = [
   "tsunami advisory tracker",
   "earthquake magnitude tracker",
   "global earthquake monitor",
+  "Today's earthquakes",
+  "earthquake epicenter coordinates",
+  "earthquake depth information",
+  "earthquake news coverage",
+  "Earthquake near me",
+  "Severe earthquake today",
+  "Tsunami warning",
+  "Today Seismic map",
+  "Earthquake magnitude",
+  "Earthquake epicenter",
+  "Earthquake depth",
+  "Earthquake news",
 ];
 
 export type FaqItem = { q: string; a: string };

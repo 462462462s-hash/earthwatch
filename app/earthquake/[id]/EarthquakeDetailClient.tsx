@@ -31,7 +31,7 @@ type NewsArticle = {
   title: string;
   description: string;
   url: string;
-  imageUrl: string | null;
+  imageUrl: string | null; alt: string | null;
   source: string;
 };
 
@@ -148,7 +148,7 @@ function EarthquakeDetailMain() {
               title:       item.headline || "Earthquake Update",
               description: item.mediaFeeds?.[0]?.alt || "",
               url:         item.url || "#",
-              imageUrl:    item.mediaFeeds?.[0]?.src || null,
+              imageUrl:    item.mediaFeeds?.[0]?.src || null, alt: item.mediaFeeds?.[0]?.alt || null,
               source:      item.source || "News",
             }));
             setNews(mapped);
@@ -210,8 +210,8 @@ function EarthquakeDetailMain() {
 
   const magColor   = getMagColor(eq.magnitude);
   const alertStyle = getAlertColor(eq.alert ?? null);
-  const newsWithImages = news.filter(a => a.imageUrl);
-  const newsTextOnly   = news.filter(a => !a.imageUrl);
+  const newsWithImages = news.filter(a => a.imageUrl && a.alt); 
+  const newsTextOnly   = news.filter(a => !a.imageUrl || !a.alt);
 
   const locationLabel = eq.country ? `${eq.region}, ${eq.country}` : eq.place;
   const shareTitle = `M${eq.magnitude.toFixed(1)} Earthquake — ${eq.place} | Quake Hub`;
@@ -444,14 +444,14 @@ function EarthquakeDetailMain() {
                       <div className="relative overflow-hidden w-full h-36 sm:h-40 md:h-44">
                         <img
                           src={article.imageUrl!}
-                          alt={`${article.title} - report from ${article.source} on magnitude ${eq.magnitude.toFixed(1)} earthquake near ${eq.place}`}
+                          alt={article.alt || `${article.title} - report from ${article.source} on magnitude ${eq.magnitude.toFixed(1)} earthquake near ${eq.place}`}
                           className="w-full h-full object-cover opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                           loading="lazy"
                           decoding="async"
                           fetchPriority="low"
                           width={600}
                           height={340}
-                          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          onError={e => { (e.target as HTMLImageElement ).style.display = "none";}}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/40 to-transparent" />
                         <div className="absolute top-2.5 left-2.5 max-w-[85%]">
