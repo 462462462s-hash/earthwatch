@@ -403,7 +403,7 @@ export default function HomeClient() {
     setOpenCountry(false);
     setCountrySearch("");
   }, []);
-
+  
   return (
     <div className="min-h-screen text-white pb-12 bg-[#060610] antialiased selection:bg-orange-500/30">
       <Ticker items={latestNewsObjects} />

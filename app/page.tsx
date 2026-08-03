@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import HomeClient from "./components/Homeclient";
-import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION, SITE_KEYWORDS, FAQ_ITEMS, buildFaqSchema } from "./lib/seo";
+import {
+  SITE_URL,
+  SITE_TITLE,
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  FAQ_ITEMS,
+  buildFaqSchema,
+} from "./lib/seo";
 
 export const revalidate = 30;
 
