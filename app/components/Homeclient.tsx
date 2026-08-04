@@ -2,7 +2,17 @@
 
 import { useEffect, useRef, useState, useMemo, useCallback, memo } from "react";
 import dynamic from "next/dynamic";
-import { Activity, AlertTriangle, Globe, Zap, Check, ShieldAlert } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  Globe,
+  Zap,
+  Check,
+  ShieldAlert,
+  Radio,
+  ListChecks,
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
 import ShareButtons from "./Sharebuttons";
 import SiteFooter from "./SiteFooter";
@@ -150,14 +160,19 @@ const RecentReports = memo(function RecentReports({ earthquakes }: { earthquakes
             <li key={eq.id}>
               <Link
                 href={`/earthquake/${slug}`}
-                title={`Detailed seismic analysis for Magnitude ${eq.magnitude.toFixed(1)} quake in ${eq.place}`}
-                className="flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 bg-white/[0.01] transition-colors text-xs"
+                title={`View full details for Magnitude ${eq.magnitude.toFixed(1)} earthquake in ${eq.place}`}
+                className="group flex items-center justify-between gap-2 p-3 rounded-xl border border-white/5 hover:border-orange-500/40 hover:bg-white/[0.03] bg-white/[0.01] transition-all text-xs"
               >
-                <span className="text-orange-300 font-bold font-mono">M{eq.magnitude.toFixed(1)}</span>
+                <span className="text-orange-300 font-bold font-mono shrink-0">M{eq.magnitude.toFixed(1)}</span>
                 <span className="text-white/70 truncate flex-1 mx-2">{eq.place}</span>
                 <time dateTime={new Date(eq.time).toISOString()} className="text-orange-400/40 shrink-0">
                   {new Date(eq.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </time>
+                <ArrowRight
+                  size={12}
+                  className="text-orange-500/0 group-hover:text-orange-400/80 group-hover:translate-x-0.5 transition-all shrink-0"
+                  aria-hidden="true"
+                />
               </Link>
             </li>
           );
@@ -179,19 +194,35 @@ const Hero = memo(function Hero() {
           />
         ))}
       </div>
-      <div className="relative text-center pt-10 pb-8 sm:pt-14 sm:pb-10 px-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold mb-4 sm:mb-6 tracking-widest bg-red-500/10 border border-red-500/30 text-red-400">
+      <div className="relative text-center pt-10 pb-8 sm:pt-12 sm:pb-10 px-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold mb-4 sm:mb-5 tracking-widest bg-red-500/10 border border-red-500/30 text-red-400">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
-          USGS REAL-TIME DATA STREAM
+          Live Earthquake Map — Real-Time Global Tracker
         </div>
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight mb-3 bg-gradient-to-br from-orange-500 via-amber-400 to-red-600 bg-clip-text text-transparent leading-[1.1]">
+        <h1 className="max-w-xl mx-auto text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight mb-3 bg-gradient-to-br from-orange-500 via-amber-400 to-red-600 bg-clip-text text-transparent leading-snug">
           Quake Hub – Live Earthquake Map &amp; Real-Time Seismic Tracker
         </h1>
         <p className="text-orange-300/70 text-xs sm:text-sm tracking-wide font-medium px-4 max-w-2xl mx-auto">
-          Monitor verified USGS seismic activity globally on an interactive, real-time earthquake tracker. View tremors, epicenter depths, and fault line alerts instantly.
+          Track earthquakes as they happen, anywhere in the world. Magnitude, depth, location, and time — updated every minute, straight from the USGS.
         </p>
       </div>
     </div>
+  );
+});
+
+const IntroSection = memo(function IntroSection() {
+  return (
+    <section className="px-4 sm:px-6 pb-6 max-w-3xl mx-auto text-center" aria-labelledby="intro-heading">
+      <h2 id="intro-heading" className="sr-only">About This Live Earthquake Tracker</h2>
+      <p className="text-xs sm:text-sm text-[#aaa8c0] leading-relaxed">
+        Every day, thousands of earthquakes occur around the world — most too small to feel, some strong enough to
+        make headlines. Quake Hub pulls live earthquake data directly from the United States Geological Survey
+        (USGS) and displays it on an interactive map, refreshed automatically so you&apos;re always seeing the
+        latest activity. Whether you&apos;re checking on a recent quake near you, monitoring seismic activity in a
+        region you care about, or just curious how active the earth has been today, you&apos;ll find real-time,
+        accurate data here — no delays, no guesswork.
+      </p>
+    </section>
   );
 });
 
@@ -287,6 +318,81 @@ const NavBar = memo(function NavBar({
         <ShareButtons />
       </div>
     </nav>
+  );
+});
+
+const HowItWorksSection = memo(function HowItWorksSection() {
+  const howItWorks = [
+    { title: "Real-time updates", body: "New earthquake data refreshes automatically, typically within minutes of an event being detected." },
+    { title: "Verified source", body: "All data comes from USGS monitoring stations, not third-party estimates." },
+    { title: "Global coverage", body: "Every recorded earthquake worldwide appears on the map, from magnitude 1.0 tremors to major events." },
+    { title: "No sign-up required", body: "The map, filters, and data are free and open to everyone." },
+  ];
+  const whatYouTrack = [
+    { title: "Recent earthquakes near you", body: "Filter by location to see activity in your region." },
+    { title: "Magnitude and depth", body: "Every event shows its strength and how far below the surface it occurred." },
+    { title: "Historical patterns", body: "Compare today's activity against recent days to spot trends." },
+    { title: "Tsunami-relevant events", body: "Larger offshore quakes are flagged so you can check official tsunami alert channels if needed." },
+  ];
+  return (
+    <section
+      className="px-4 sm:px-6 py-8 max-w-4xl mx-auto grid gap-6 md:grid-cols-2 border-t border-orange-500/10"
+      aria-labelledby="how-it-works-heading"
+    >
+      <div>
+        <h2 id="how-it-works-heading" className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Radio size={14} /> How This Tracker Works
+        </h2>
+        <ul className="space-y-3 list-none">
+          {howItWorks.map((item) => (
+            <li key={item.title} className="text-xs sm:text-sm text-[#aaa8c0] leading-relaxed">
+              <span className="text-white/90 font-semibold">{item.title}</span> — {item.body}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <ListChecks size={14} /> What You Can Track
+        </h2>
+        <ul className="space-y-3 list-none">
+          {whatYouTrack.map((item) => (
+            <li key={item.title} className="text-xs sm:text-sm text-[#aaa8c0] leading-relaxed">
+              <span className="text-white/90 font-semibold">{item.title}</span> — {item.body}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+});
+
+const TrustStrip = memo(function TrustStrip() {
+  return (
+    <section className="px-4 sm:px-6 pb-8 max-w-4xl mx-auto">
+      <div className="rounded-xl p-4 border border-white/5 bg-white/[0.01] text-[11px] text-orange-100/50 leading-relaxed text-center">
+        Data sourced from the{" "}
+        <a
+          href="https://earthquake.usgs.gov/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-orange-300"
+        >
+          USGS Earthquake Hazards Program
+        </a>
+        . Quake Hub is an independent data viewer and is not affiliated with or an official channel of USGS, NOAA,
+        or any government agency. For official tsunami and emergency alerts, always refer to{" "}
+        <a
+          href="https://www.tsunami.gov/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-orange-300"
+        >
+          NOAA/NWS
+        </a>{" "}
+        or your local emergency services.
+      </div>
+    </section>
   );
 });
 
@@ -403,7 +509,7 @@ export default function HomeClient() {
     setOpenCountry(false);
     setCountrySearch("");
   }, []);
-  
+
   return (
     <div className="min-h-screen text-white pb-12 bg-[#060610] antialiased selection:bg-orange-500/30">
       <Ticker items={latestNewsObjects} />
@@ -421,6 +527,7 @@ export default function HomeClient() {
 
       <main id="main-content">
         <Hero />
+        <IntroSection />
         <LastUpdated date={lastUpdated} />
 
         <MetricGrid total={filtered.length} highRisk={highRisk.length} major={major.length} />
@@ -462,8 +569,8 @@ export default function HomeClient() {
                   { label: "M4+", color: "bg-[#ffdd00]", href: "/earthquakes/magnitude-4-plus" },
                   { label: "M4", color: "bg-[#88cc44]", href: "/earthquakes/minor" },
                 ].map((item) => (
-                  <Link 
-                    key={item.label} 
+                  <Link
+                    key={item.label}
                     href={item.href}
                     className="flex items-center gap-1.5 hover:text-orange-300 transition-colors"
                     title={`View all ${item.label} earthquakes`}
@@ -481,27 +588,22 @@ export default function HomeClient() {
 
         <RecentReports earthquakes={earthquakes} />
 
-        <section className="px-4 sm:px-6 py-8 max-w-4xl mx-auto space-y-6 text-[#aaa8c0] text-xs sm:text-sm leading-relaxed border-t border-orange-500/10 mt-6" aria-labelledby="seo-heading">
+        <HowItWorksSection />
+
+        <section className="px-4 sm:px-6 py-8 max-w-4xl mx-auto space-y-6 text-[#aaa8c0] text-xs sm:text-sm leading-relaxed border-t border-orange-500/10" aria-labelledby="seo-heading">
           <h2 id="seo-heading" className="sr-only">About Quake Hub — Live Earthquake Map and Real-Time Seismic Monitoring</h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">How to Track Global Seismic Activity</h3>
-              <p>
-                Quake Hub syncs directly with the USGS real-time earthquake feed to log tectonic shifts continuously. Use the live earthquake map to inspect epicenter coordinates, hypocenter depths, and localized magnitudes across any region — all within a real-time earthquake tracker updated every 30 seconds.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Understanding USGS Magnitude Scales</h3>
-              <p>
-                Minor seismic events usually register below magnitude 4.0. Tremors exceeding magnitude 5.0 denote severe ground motion capable of structural damage, while critical alerts broadcast whenever an event surpasses magnitude 6.0.
-              </p>
-            </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Understanding USGS Magnitude Scales</h3>
+            <p>
+              Minor seismic events usually register below magnitude 4.0. Tremors exceeding magnitude 5.0 denote severe ground motion capable of structural damage, while critical alerts broadcast whenever an event surpasses magnitude 6.0.
+            </p>
           </div>
 
           <div>
             <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Why Monitor Fault Line Activity with Quake Hub?</h3>
             <p>
-              Real-time earthquake monitoring helps emergency teams, researchers, and residents stay aware of active tectonic shifts. Quake Hub's live earthquake tracker aggregates verified USGS data on magnitude, depth, tsunami advisory status, and felt reports across every continent.
+              Real-time earthquake monitoring helps emergency teams, researchers, and residents stay aware of active tectonic shifts. Quake Hub&apos;s live earthquake tracker aggregates verified USGS data on magnitude, depth, tsunami advisory status, and felt reports across every continent.
             </p>
           </div>
 
@@ -519,6 +621,8 @@ export default function HomeClient() {
             </div>
           </div>
         </section>
+
+        <TrustStrip />
       </main>
 
       <SiteFooter />

@@ -4,6 +4,7 @@ import { useEffect, useRef, memo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useRouter } from "next/navigation";
+import { getEarthquakeSlug } from "@/app/lib/utils";
 
 type Earthquake = {
   id: string;
@@ -253,7 +254,11 @@ function EarthquakeMapImpl({ data, zoomSequence, selectedCountry }: Props) {
       });
 
       const marker = L.marker([eq.lat, eq.lon], { icon: markerIcon });
-      marker.on("click", () => router.push(`/earthquake/${encodeURIComponent(eq.id)}`));
+      
+      // UPDATED ROUTE NAVIGATION HERE
+      marker.on("click", () => {
+        router.push(getEarthquakeSlug(eq));
+      });
 
       group.addLayer(marker);
       markersById.set(eq.id, marker);

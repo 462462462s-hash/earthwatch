@@ -1,10 +1,8 @@
+// app/page.tsx
 import type { Metadata } from "next";
 import HomeClient from "./components/Homeclient";
 import {
   SITE_URL,
-  SITE_TITLE,
-  SITE_DESCRIPTION,
-  SITE_KEYWORDS,
   FAQ_ITEMS,
   buildFaqSchema,
 } from "./lib/seo";
@@ -12,15 +10,22 @@ import {
 export const revalidate = 30;
 
 export const metadata: Metadata = {
-  title: SITE_TITLE,
-  description: SITE_DESCRIPTION,
-  keywords: SITE_KEYWORDS,
-  alternates: { canonical: "/" },
+  title: "Live Earthquake Map & Real-Time Tracker | USGS Data",
+  description:
+    "Track earthquakes happening right now worldwide. Real-time magnitude, depth, and location data sourced directly from USGS. Updated every minute.",
+  keywords: [
+    "live earthquake map",
+    "real-time earthquake tracker",
+    "USGS earthquake data",
+  ],
+  alternates: {
+    canonical: SITE_URL,
+  },
   openGraph: {
     type: "website",
     url: SITE_URL,
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
+    title: "Live Earthquake Map & Real-Time Tracker",
+    description: "Track earthquakes worldwide in real time with live USGS data.",
     siteName: "Quake Hub",
     images: [
       {
@@ -30,25 +35,55 @@ export const metadata: Metadata = {
         alt: "Quake Hub live earthquake map showing real-time global seismic activity",
       },
     ],
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
+    title: "Live Earthquake Map & Real-Time Tracker",
+    description: "Track earthquakes worldwide in real time with live USGS data.",
     images: ["/og-image.png"],
+  },
+};
+
+// Dataset JSON-LD Schema
+const datasetSchema = {
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  name: "Real-Time Global Earthquake Data",
+  description: "Live earthquake events sourced from USGS Earthquake Hazards Program.",
+  url: SITE_URL,
+  license: "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+  creator: {
+    "@type": "Organization",
+    name: "USGS",
+    url: "https://earthquake.usgs.gov/",
+  },
+  temporalCoverage: "2024-01-01/..",
+  distribution: {
+    "@type": "DataDownload",
+    encodingFormat: "application/json",
+    contentUrl: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
   },
 };
 
 export default function Page() {
   return (
     <>
-      {/* FAQ schema rendered server-side — no client JS needed to build this,
-          and Google can read it even before hydration finishes. */}
+      {/* FAQ Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqSchema(FAQ_ITEMS)) }}
       />
-      <HomeClient />
+      
+      {/* Dataset Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }}
+      />
+
+      {/* Main UI */}
+
+      <HomeClient/>
     </>
   );
 }

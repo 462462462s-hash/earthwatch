@@ -89,12 +89,16 @@ function EarthquakeDetailMain() {
 
   useEffect(() => {
     const rawId = params?.id || searchParams.get("id");
-    const id = typeof rawId === "string" ? rawId : Array.isArray(rawId) ? rawId[0] : "";
+    let fullSlug = typeof rawId === "string" ? rawId : Array.isArray(rawId) ? rawId[0] : "";
 
-    if (!id) {
+    if (!fullSlug) {
       setLoading(false);
       return;
     }
+
+    // Extract USGS ID from the slug (e.g. "m5.2-japan-us6000thra" -> "us6000thra")
+    const idParts = fullSlug.split("-");
+    const id = idParts[idParts.length - 1];
 
     const fetchDetail = async () => {
       try {
@@ -122,7 +126,7 @@ function EarthquakeDetailMain() {
           tsunami:      props.tsunami === 1 || props.tsunami === true ? 1 : 0,
           felt:         props.felt  ?? 0,
           alert:        props.alert ?? null,
-          significance: props.sig ?? 0,
+          significance: props.sig   ?? 0,
         };
 
         setEq(eqData);

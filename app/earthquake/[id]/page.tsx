@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import EarthquakeDetailClient from "./EarthquakeDetailClient";
 import { SITE_URL } from "@/app/lib/seo";
 
@@ -6,11 +7,34 @@ export const revalidate = 60;
 
 type Props = { params: Promise<{ id: string }> };
 
-async function fetchEarthquakeData(id: string) {
+function extractUsgsId(slug: string): string {
+  if (!slug) return "";
+  const parts = slug.split("-");
+  return parts[parts.length - 1];
+}
+
+function buildCanonicalSlug(id: string, place: string, mag: number): string {
+  const magStr = `m${mag.toFixed(1).replace(".", "-")}`;
+  const cleanPlace = place
+    .toLowerCase()
+    .replace(/^\d+\s*km\s+[a-z]+\s+of\s+/i, "")
+    .replace(/^off the coast of\s+/i, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+
+  return `${magStr}-${cleanPlace}-${id}`;
+}
+
+async function fetchEarthquakeData(slug: string) {
+  const id = extractUsgsId(slug);
+  if (!id) return null;
+
   try {
-    const res = await fetch(`https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/${id}.geojson`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(
+      `https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/${id}.geojson`,
+      { next: { revalidate: 60 } }
+    );
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -25,55 +49,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const place: string = props.place || "Unknown Location";
   const mag: number = typeof props.mag === "number" ? props.mag : 0;
 
-  const title = `M${mag.toFixed(1)} Earthquake — ${place} | Quake Hub`;
-  const description = `Live details for the M${mag.toFixed(1)} earthquake near ${place}: magnitude, depth, epicenter coordinates, tsunami advisory status, and real-time news coverage from Quake Hub's live earthquake map.`;
+  const formattedMag = mag.toFixed(1);
+  const title = `M${formattedMag} Earthquake — ${place} | Quake Hub`;
 
   return {
     title,
-    description,
-    alternates: { canonical: `${SITE_URL}/earthquake/${id}` },
-    openGraph: {
-      type: "article",
-      url: `${SITE_URL}/earthquake/${id}`,
-      title,
-      description,
-      siteName: "Quake Hub",
-      images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: `Seismic details for M${mag.toFixed(1)} earthquake near ${place}` }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [`${SITE_URL}/og-image.png`],
+    description: `Magnitude ${formattedMag} earthquake recorded near ${place}. View real-time seismic details, hypocenter metrics, and live updates.`,
+    alternates: {
+      canonical: `${SITE_URL}/earthquake/${id}`,
     },
   };
 }
 
-export default async function Page({ params }: Props) {
-  const { id } = await params;
-  const data = await fetchEarthquakeData(id);
-  const props = data?.properties || {};
-  const geometry = data?.geometry || {};
-  const coords = geometry.coordinates || [0, 0, 0];
+export default async function EarthquakeDetailPage({ params }: Props) {
+  const { id: rawSlug } = await params;
+  const data = await fetchEarthquakeData(rawSlug);
 
-  const eventLd = data ? {
-    "@context": "https://schema.org",
-    "@type": "Event",
-    name: `M${(props.mag ?? 0).toFixed(1)} Earthquake near ${props.place || "Unknown Location"}`,
-    description: `Seismic event with a magnitude of ${(props.mag ?? 0).toFixed(1)} recorded at ${props.place || "Unknown Location"}.`,
-    startDate: props.time ? new Date(props.time).toISOString() : undefined,
-    location: {
-      "@type": "Place",
-      name: props.place || "Unknown Location",
-      geo: { "@type": "GeoCoordinates", latitude: coords[1], longitude: coords[0], elevation: coords[2] ? `${-coords[2]} km` : undefined },
-    },
-    organizer: { "@type": "Organization", name: "United States Geological Survey (USGS)", url: "https://earthquake.usgs.gov" },
-  } : null;
+  // If user accesses /earthquake/us6000thvq directly, redirect to full slug
+  if (data) {
+    const usgsId = data.id;
+    const mag = data.properties?.mag || 0;
+    const place = data.properties?.place || "";
+    const canonicalSlug = buildCanonicalSlug(usgsId, place, mag);
 
-  return (
-    <>
-      {eventLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventLd) }} />}
-      <EarthquakeDetailClient />
-    </>
-  );
+    if (rawSlug !== canonicalSlug) {
+      redirect(`/earthquake/${canonicalSlug}`);
+    }
+  }
+
+  return <EarthquakeDetailClient />;
 }
