@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 // Ensure this matches your final custom domain if you move off Vercel's default preview subdomain
-const SITE_URL = "https://earthwatch-iihz-azure.vercel.app"; 
+const SITE_URL = "https://quakehublive.com"; 
 
 export default function robots(): MetadataRoute.Robots {
   return {

@@ -75,7 +75,7 @@ type ShareButtonsProps = {
 };
 
 export default function ShareButtons({
-  url = "https://earthwatch-iihz-azure.vercel.app",
+  url = "https://quakehublive.com",
   title = "Check out Quake Hub — Real-Time Earthquake Tracker",
   className = "",
   showFollowLinks = false,

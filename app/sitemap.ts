@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 // 1. Point this to your actual production URL
-const SITE_URL = "https://earthwatch-iihz-azure.vercel.app"; 
+const SITE_URL = "https://quakehublive.com"; 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
