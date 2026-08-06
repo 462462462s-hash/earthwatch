@@ -259,7 +259,7 @@ const NavBar = memo(function NavBar({
           </div>
           <div>
             <div className="text-sm font-black text-orange-300 tracking-[0.15em]">QUAKE</div>
-            <div className="text-[10px] text-orange-500 tracking-[0.4em] font-medium -mt-0.5">HUB</div>
+            <div className="text-[10px] text-orange-500 tracking-[0.4em] font-medium -mt-0.5">HUB LIVE</div>
           </div>
         </Link>
 
